@@ -56,8 +56,10 @@ mail := mailyak.New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail
 mail.To("dom@itsallbroken.com")
 mail.From("oops@itsallbroken.com")
 mail.Subject("I am a teapot")
+mail.HTML().Set("Don't panic")
 
 // input can be a bytes.Buffer, os.File, os.Stdin, etc.
+// call multiple times to attach multiple files
 mail.Attach("filename.txt", &input)
 
 if err := mail.Send(); err != nil {
