@@ -13,7 +13,6 @@ A simple, easy to use email library for Go (golang).
 - Send to multiple addresses at the same time, including BCC addresses.
 - Supports composing multi-part messages (HTML and plain text emails for older clients)
 - Write templates directly to the email body (implements `io.Writer` for convenience)
-- Write templates directly to the email body (implements `io.Writer` for convenience)
 - Production ready - several million emails sent in a production environment
 - Comprehensive unit tests
 
