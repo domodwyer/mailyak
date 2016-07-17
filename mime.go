@@ -10,16 +10,26 @@ import (
 )
 
 func (m *MailYak) buildMime() (*bytes.Buffer, error) {
-	return m.buildMimeWithBoundaries(randomBoundary(), randomBoundary())
+	mb, err := randomBoundary()
+	if err != nil {
+		return nil, err
+	}
+
+	ab, err := randomBoundary()
+	if err != nil {
+		return nil, err
+	}
+
+	return m.buildMimeWithBoundaries(mb, ab)
 }
 
-func randomBoundary() string {
-	var buf [30]byte
-	_, err := io.ReadFull(rand.Reader, buf[:])
+func randomBoundary() (string, error) {
+	buf := make([]byte, 30)
+	_, err := io.ReadFull(rand.Reader, buf)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	return fmt.Sprintf("%x", buf[:])
+	return fmt.Sprintf("%x", buf), nil
 }
 
 // buildMimeWithBoundaries creates the MIME message and returns it as a buffer
@@ -95,8 +105,7 @@ func (m MailYak) writeBody(w io.Writer, boundary string) error {
 
 		c := fmt.Sprintf("%s; charset=UTF-8", ctype)
 
-		var part io.Writer
-		part, err = alt.CreatePart(textproto.MIMEHeader{"Content-Type": {c}})
+		part, err := alt.CreatePart(textproto.MIMEHeader{"Content-Type": {c}})
 		if err != nil {
 			return
 		}

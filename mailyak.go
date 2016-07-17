@@ -34,7 +34,7 @@ type MailYak struct {
 	host        string
 }
 
-// New returns an instance of MailYak inialised with the given SMTP address and
+// New returns an instance of MailYak initialised with the given SMTP address and
 // authentication credentials
 //
 // Note: the host string should include the port (i.e. "smtp.itsallbroken.com:25")

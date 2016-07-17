@@ -21,12 +21,25 @@ func (b lineSplitterBuilder) new(w io.Writer) io.Writer {
 func (w *lineSplitter) Write(p []byte) (int, error) {
 	offset := 0
 	breaks := (len(p) / w.maxLen)
+
 	for i := 0; i < breaks; i++ {
-		w.w.Write(p[offset : offset+w.maxLen])
-		w.w.Write([]byte("\r\n"))
+		// Write line
+		if i, err := w.w.Write(p[offset : offset+w.maxLen]); err != nil {
+			return i, err
+		}
+
+		// Write line break
+		if i, err := w.w.Write([]byte("\r\n")); err != nil {
+			return i, err
+		}
+
 		offset += w.maxLen
 	}
 
-	w.w.Write(p[offset:])
+	// Write remaining
+	if i, err := w.w.Write(p[offset:]); err != nil {
+		return i, err
+	}
+
 	return (len(p) + (breaks * 2)), nil
 }
