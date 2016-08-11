@@ -15,10 +15,15 @@ package mailyak
 //
 //	mail.To(tos...)
 func (m *MailYak) To(addrs ...string) {
-	m.toAddrs = make([]string, len(addrs))
+	m.toAddrs = []string{}
 
-	for i, addr := range addrs {
-		m.toAddrs[i] = m.trimRegex.ReplaceAllString(addr, "")
+	for _, addr := range addrs {
+		trimmed := m.trimRegex.ReplaceAllString(addr, "")
+		if trimmed == "" {
+			continue
+		}
+
+		m.toAddrs = append(m.toAddrs, trimmed)
 	}
 }
 
@@ -37,10 +42,15 @@ func (m *MailYak) To(addrs ...string) {
 //
 // 	mail.Bcc(bccs...)
 func (m *MailYak) Bcc(addrs ...string) {
-	m.bccAddrs = make([]string, len(addrs))
+	m.bccAddrs = []string{}
 
-	for i, addr := range addrs {
-		m.bccAddrs[i] = m.trimRegex.ReplaceAllString(addr, "")
+	for _, addr := range addrs {
+		trimmed := m.trimRegex.ReplaceAllString(addr, "")
+		if trimmed == "" {
+			continue
+		}
+
+		m.bccAddrs = append(m.bccAddrs, trimmed)
 	}
 }
 
