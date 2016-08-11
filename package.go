@@ -1,4 +1,4 @@
-// This library provides a simple interface for sending MIME compliant emails
+// Package mailyak provides a simple interface for sending MIME compliant emails
 // over SMTP.
 //
 // Attachments are fully supported (attach anything that implements io.Reader)

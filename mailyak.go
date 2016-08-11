@@ -19,6 +19,8 @@ type Emailer interface {
 	Plain() *BodyPart
 }
 
+// MailYak holds all the necessary information to send an email.
+// It also implements the Emailer interface.
 type MailYak struct {
 	html  BodyPart
 	plain BodyPart

@@ -1,19 +1,12 @@
 package mailyak
 
-// BodyPart is a byte slice that implements io.Writer
-type BodyPart []byte
+import "bytes"
 
-func (w *BodyPart) Write(p []byte) (int, error) {
-	*w = append(*w, p...)
-	return len(p), nil
-}
+// BodyPart is a buffer.
+type BodyPart struct{ bytes.Buffer }
 
-// String returns the byte slice as a string in fmt.Printx(), etc
-func (w BodyPart) String() string {
-	return string(w)
-}
-
-// Set accepts a string as the contents of a BodyPart
+// Set accepts a string as the contents of a BodyPart and replaces any existing data.
 func (w *BodyPart) Set(s string) {
-	*w = []byte(s)
+	w.Reset()
+	w.WriteString(s)
 }
