@@ -64,7 +64,7 @@ func (m *MailYak) buildMimeWithBoundaries(mb, ab string) (*bytes.Buffer, error) 
 }
 
 // writeHeaders writes the Mime-Version, Reply-To, From, To and Subject headers
-func (m MailYak) writeHeaders(buf io.Writer) {
+func (m *MailYak) writeHeaders(buf io.Writer) {
 
 	buf.Write([]byte(m.fromHeader()))
 	buf.Write([]byte("Mime-Version: 1.0\r\n"))
@@ -82,7 +82,7 @@ func (m MailYak) writeHeaders(buf io.Writer) {
 
 // fromHeader returns a correctly formatted From header, optionally with a name
 // component
-func (m MailYak) fromHeader() string {
+func (m *MailYak) fromHeader() string {
 	if m.fromName == "" {
 		return fmt.Sprintf("From: %s\r\n", m.fromAddr)
 	}
@@ -91,7 +91,7 @@ func (m MailYak) fromHeader() string {
 }
 
 // writeBody writes the text/plain and text/html mime parts
-func (m MailYak) writeBody(w io.Writer, boundary string) error {
+func (m *MailYak) writeBody(w io.Writer, boundary string) error {
 	alt := multipart.NewWriter(w)
 	defer alt.Close()
 
