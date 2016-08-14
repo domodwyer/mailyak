@@ -14,7 +14,7 @@ package mailyak
 //	}
 //
 //	mail.To(tos...)
-func (m *MailYak) To(addrs ...string) {
+func (m *MailYak) To(addrs ...string) *MailYak {
 	m.toAddrs = []string{}
 
 	for _, addr := range addrs {
@@ -25,6 +25,7 @@ func (m *MailYak) To(addrs ...string) {
 
 		m.toAddrs = append(m.toAddrs, trimmed)
 	}
+	return m
 }
 
 // Bcc sets a list of blind carbon copy (BCC) addresses
@@ -41,7 +42,7 @@ func (m *MailYak) To(addrs ...string) {
 //	}
 //
 // 	mail.Bcc(bccs...)
-func (m *MailYak) Bcc(addrs ...string) {
+func (m *MailYak) Bcc(addrs ...string) *MailYak {
 	m.bccAddrs = []string{}
 
 	for _, addr := range addrs {
@@ -52,24 +53,29 @@ func (m *MailYak) Bcc(addrs ...string) {
 
 		m.bccAddrs = append(m.bccAddrs, trimmed)
 	}
+	return m
 }
 
 // From sets the sender email address
-func (m *MailYak) From(addr string) {
+func (m *MailYak) From(addr string) *MailYak {
 	m.fromAddr = addr
+	return m
 }
 
 // FromName sets the sender name
-func (m *MailYak) FromName(name string) {
+func (m *MailYak) FromName(name string) *MailYak {
 	m.fromName = name
+	return m
 }
 
 // ReplyTo sends the Reply-To email address
-func (m *MailYak) ReplyTo(addr string) {
+func (m *MailYak) ReplyTo(addr string) *MailYak {
 	m.replyTo = addr
+	return m
 }
 
 // Subject sets the email subject line
-func (m *MailYak) Subject(sub string) {
+func (m *MailYak) Subject(sub string) *MailYak {
 	m.subject = m.trimRegex.ReplaceAllString(sub, "")
+	return m
 }
