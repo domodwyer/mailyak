@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/smtp"
+	"strings"
 	"testing"
 )
 
@@ -13,19 +14,25 @@ func TestHTML(t *testing.T) {
 	tests := []struct {
 		name string
 		// Parameters.
-		data string
+		data []string
 	}{
-		{"Writer test", "Worst idea since someone said ‘yeah let’s take this suspiciously large wooden horse into Troy, statues are all the rage this season’."},
+		{"Writer test", []string{"Worst idea since someone said ‘yeah let’s take this suspiciously large wooden horse into Troy, statues are all the rage this season’."}},
+		{"Writer test multiple", []string{
+			"Worst idea since someone said ‘yeah let’s take this suspiciously large wooden horse into Troy, statues are all the rage this season’.",
+			"Am I jumping the gun, Baldrick, or are the words 'I have a cunning plan' marching with ill-deserved confidence in the direction of this conversation?",
+		}},
 	}
 	for _, tt := range tests {
 		mail := New("", smtp.PlainAuth("", "", "", ""))
 
-		if _, err := io.WriteString(mail.HTML(), tt.data); err != nil {
-			t.Errorf("%q. HTML() error = %v", tt.name, err)
-			continue
+		for _, data := range tt.data {
+			if _, err := io.WriteString(mail.HTML(), data); err != nil {
+				t.Errorf("%q. HTML() error = %v", tt.name, err)
+				continue
+			}
 		}
 
-		if !bytes.Equal([]byte(tt.data), mail.html) {
+		if !bytes.Equal([]byte(strings.Join(tt.data, "")), mail.html) {
 			t.Errorf("%q. HTML() = %v, want %v", tt.name, string(mail.html), tt.data)
 		}
 	}

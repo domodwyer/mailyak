@@ -12,7 +12,7 @@ A simple, easy to use email library for Go (golang).
 - Full attachment support (attach anything that implements `io.Reader`)
 - Send to multiple addresses at the same time, including BCC addresses.
 - Supports composing multi-part messages (HTML and plain text emails for older clients)
-- Write templates directly to the email body (implements `io.Writer` for convince)
+- Write templates directly to the email body (implements `io.Writer` for convenience)
 - Production ready - several million emails sent in a production environment
 - Comprehensive unit tests
 
@@ -30,7 +30,7 @@ mail := mailyak.New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail
 
 mail.To("dom@itsallbroken.com")
 mail.From("nigerianprince@justneedshelp.com")
-mail.FromName("Prince Anybody")
+mail.FromName("Prince Fournineteen")
 
 mail.Subject("Business proposition")
 
@@ -69,7 +69,7 @@ if err := mail.Send(); err != nil {
 
 # Notes
 
-- Why "MailYak"? Because "MailyMcMailFace" is annoyingly long to type all the time.
+- Why "MailYak"? Because "MailyMcMailFace" is annoyingly long to type.
 - You can use a single instance of mailyak to send multiple emails after changing the to/body/whatever fields, avoiding unnecessary allocation/GC pressure.
 - Attachments are read when you call `Send()` to prevent holding onto multiple copies of the attachment in memory (source and email) - this means changing the attachment data between calling `Attach()` and `Send()` will change what's emailed out!
 - For your own sanity you should vendor this, and any other libraries when going into production, I recommend [govendor](https://github.com/kardianos/govendor).

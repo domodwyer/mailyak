@@ -4,7 +4,7 @@ package mailyak
 type BodyPart []byte
 
 func (w *BodyPart) Write(p []byte) (int, error) {
-	*w = p
+	*w = append(*w, p...)
 	return len(p), nil
 }
 
