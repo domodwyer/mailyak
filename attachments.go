@@ -48,7 +48,7 @@ func (m *MailYak) ClearAttachments() {
 
 // writeAttachments loops over the attachments, guesses their content-type and
 // writes the data as a line-broken base64 string (using the splitter mutator)
-func (m MailYak) writeAttachments(mixed partCreator, splitter writeWrapper) error {
+func (m *MailYak) writeAttachments(mixed partCreator, splitter writeWrapper) error {
 	h := make([]byte, sniffLen)
 
 	for _, item := range m.attachments {

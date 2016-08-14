@@ -1,6 +1,7 @@
 package mailyak
 
 import (
+	"fmt"
 	"net/smtp"
 	"regexp"
 )
@@ -57,7 +58,7 @@ func New(host string, auth smtp.Auth) *MailYak {
 //
 // Attachments are read when Send() is called, and any errors will be returned
 // here.
-func (m MailYak) Send() error {
+func (m *MailYak) Send() error {
 	buf, err := m.buildMime()
 	if err != nil {
 		return err
@@ -76,6 +77,17 @@ func (m MailYak) Send() error {
 	}
 
 	return nil
+}
+
+// String makes MailYak struct printable for debugging purposes (conforms to the Stringer interface).
+func (m *MailYak) String() string {
+	var att []string
+	for _, a := range m.attachments {
+		att = append(att, "{filename: "+a.filename+"}")
+	}
+	return fmt.Sprintf("&MailYak{from: %q, fromName: %q, html: %v bytes, plain: %v bytes, toAddrs: %v, bccAddrs: %v, subject: %q, host: %q, attachments (%v): %v, auth set: %v}",
+		m.fromAddr, m.fromName, len(m.HTML().String()), len(m.Plain().String()), m.toAddrs, m.bccAddrs, m.subject, m.host, len(att), att, m.auth != nil,
+	)
 }
 
 // HTML returns a BodyPart for the HTML email body
