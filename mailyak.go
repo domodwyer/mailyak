@@ -58,7 +58,7 @@ func New(host string, auth smtp.Auth) *MailYak {
 //
 // Attachments are read when Send() is called, and any errors will be returned
 // here.
-func (m MailYak) Send() error {
+func (m *MailYak) Send() error {
 	buf, err := m.buildMime()
 	if err != nil {
 		return err
