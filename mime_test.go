@@ -154,10 +154,9 @@ func TestMailYakWriteBody(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		m := MailYak{
-			html:  []byte(tt.rHTML),
-			plain: []byte(tt.rPlain),
-		}
+		m := MailYak{}
+		m.HTML().WriteString(tt.rHTML)
+		m.Plain().WriteString(tt.rPlain)
 
 		w := &bytes.Buffer{}
 		if err := m.writeBody(w, tt.boundary); (err != nil) != tt.wantErr {
@@ -302,8 +301,6 @@ func TestMailYakBuildMime(t *testing.T) {
 
 	for _, tt := range tests {
 		m := &MailYak{
-			html:      tt.rHTML,
-			plain:     tt.rPlain,
 			toAddrs:   tt.rtoAddrs,
 			subject:   tt.rsubject,
 			fromAddr:  tt.rfromAddr,
@@ -311,6 +308,8 @@ func TestMailYakBuildMime(t *testing.T) {
 			replyTo:   tt.rreplyTo,
 			trimRegex: regex,
 		}
+		m.HTML().Write(tt.rHTML)
+		m.Plain().Write(tt.rPlain)
 
 		got, err := m.buildMimeWithBoundaries("mixed", "alt")
 		if (err != nil) != tt.wantErr {
@@ -392,8 +391,6 @@ func TestMailYakBuildMime_withAttachments(t *testing.T) {
 
 	for _, tt := range tests {
 		m := &MailYak{
-			html:        tt.rHTML,
-			plain:       tt.rPlain,
 			toAddrs:     tt.rtoAddrs,
 			subject:     tt.rsubject,
 			fromAddr:    tt.rfromAddr,
@@ -402,6 +399,8 @@ func TestMailYakBuildMime_withAttachments(t *testing.T) {
 			attachments: tt.rattachments,
 			trimRegex:   regex,
 		}
+		m.HTML().Write(tt.rHTML)
+		m.Plain().Write(tt.rPlain)
 
 		got, err := m.buildMimeWithBoundaries("mixed", "alt")
 		if (err != nil) != tt.wantErr {

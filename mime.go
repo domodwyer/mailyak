@@ -105,16 +105,17 @@ func (m *MailYak) writeBody(w io.Writer, boundary string) error {
 
 		c := fmt.Sprintf("%s; charset=UTF-8", ctype)
 
-		part, err := alt.CreatePart(textproto.MIMEHeader{"Content-Type": {c}})
-		if err != nil {
+		part, err2 := alt.CreatePart(textproto.MIMEHeader{"Content-Type": {c}})
+		if err2 != nil {
+			err = err2
 			return
 		}
 
 		part.Write(data)
 	}
 
-	writePart("text/plain", m.plain)
-	writePart("text/html", m.html)
+	writePart("text/plain", m.plain.Bytes())
+	writePart("text/html", m.html.Bytes())
 
 	return err
 }
