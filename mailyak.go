@@ -1,6 +1,7 @@
 package mailyak
 
 import (
+	"bytes"
 	"fmt"
 	"net/smtp"
 	"regexp"
