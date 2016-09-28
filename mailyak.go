@@ -81,6 +81,15 @@ func (m *MailYak) Send() error {
 	return nil
 }
 
+// MimeBuf returns the buffer containing the RAW MIME data
+func (m *MailYak) MimeBuf() (*bytes.Buffer, error) {
+	buf, err := m.buildMime()
+	if err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
 // String makes MailYak struct printable for debugging purposes (conforms to the Stringer interface).
 func (m *MailYak) String() string {
 	var att []string
