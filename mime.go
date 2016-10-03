@@ -78,6 +78,10 @@ func (m *MailYak) writeHeaders(buf io.Writer) {
 	for _, to := range m.toAddrs {
 		fmt.Fprintf(buf, "To: %s\r\n", to)
 	}
+
+	for _, bcc := range m.bccAddrs {
+		fmt.Fprintf(buf, "BCC: %s\r\n", bcc)
+	}
 }
 
 // fromHeader returns a correctly formatted From header, optionally with a name
