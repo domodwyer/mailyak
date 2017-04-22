@@ -79,6 +79,10 @@ func (m *MailYak) writeHeaders(buf io.Writer) {
 		fmt.Fprintf(buf, "To: %s\r\n", to)
 	}
 
+	for _, cc := range m.ccAddrs {
+		fmt.Fprintf(buf, "CC: %s\r\n", cc)
+	}
+
 	for _, bcc := range m.bccAddrs {
 		fmt.Fprintf(buf, "BCC: %s\r\n", bcc)
 	}
