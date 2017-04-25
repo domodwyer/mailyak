@@ -1,6 +1,8 @@
 package mailyak
 
 import (
+	"fmt"
+	"net/smtp"
 	"reflect"
 	"regexp"
 	"testing"
@@ -89,5 +91,16 @@ func TestMailYakBcc(t *testing.T) {
 		if !reflect.DeepEqual(m.bccAddrs, tt.want) {
 			t.Errorf("%q. MailYak.Bcc() = %v, want %v", tt.name, m.bccAddrs, tt.want)
 		}
+	}
+}
+
+func TestFluentMailYak(t *testing.T) {
+	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
+	mail.From("from@example.org").FromName("From Example").To("to@exmaple.org").Bcc("bcc1@example.org", "bcc2@example.org")
+	mail.Subject("Test subject").ReplyTo("replies@example.org")
+	want := "&MailYak{from: \"from@example.org\", fromName: \"From Example\", html: 0 bytes, plain: 0 bytes, toAddrs: [to@exmaple.org], bccAddrs: [bcc1@example.org bcc2@example.org], subject: \"Test subject\", host: \"mail.host.com:25\", attachments (0): [], auth set: true}"
+	got := fmt.Sprintf("%+v", mail)
+	if got != want {
+		t.Errorf("MailYak.String() = %v, want %v", got, want)
 	}
 }
