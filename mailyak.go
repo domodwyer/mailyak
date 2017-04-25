@@ -27,6 +27,7 @@ type MailYak struct {
 	plain BodyPart
 
 	toAddrs     []string
+	ccAddrs	    []string
 	bccAddrs    []string
 	subject     string
 	fromAddr    string

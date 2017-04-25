@@ -15,12 +15,12 @@ import (
 func TestMailYakFromHeader(t *testing.T) {
 	tests := []struct {
 		// Test description.
-		name string
+		name      string
 		// Receiver fields.
 		rfromAddr string
 		rfromName string
 		// Expected results.
-		want string
+		want      string
 	}{
 		{
 			"With name",
@@ -58,17 +58,21 @@ func TestMailYakFromHeader(t *testing.T) {
 func TestMailYakWriteHeaders(t *testing.T) {
 	tests := []struct {
 		// Test description.
-		name string
+		name      string
 		// Receiver fields.
-		rtoAddrs []string
-		rsubject string
-		rreplyTo string
+		rtoAddrs  []string
+		rccAddrs  []string
+		rbccAddrs []string
+		rsubject  string
+		rreplyTo  string
 		// Expected results.
-		wantBuf string
+		wantBuf   string
 	}{
 		{
 			"All fields",
 			[]string{"test@itsallbroken.com"},
+			[]string{},
+			[]string{},
 			"Test",
 			"help@itsallbroken.com",
 			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nReply-To: help@itsallbroken.com\r\nSubject: Test\r\nTo: test@itsallbroken.com\r\n",
@@ -76,6 +80,8 @@ func TestMailYakWriteHeaders(t *testing.T) {
 		{
 			"No reply-to",
 			[]string{"test@itsallbroken.com"},
+			[]string{},
+			[]string{},
 			"",
 			"",
 			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\n",
@@ -83,9 +89,57 @@ func TestMailYakWriteHeaders(t *testing.T) {
 		{
 			"Multiple To addresses",
 			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
+			[]string{},
+			[]string{},
 			"",
 			"",
 			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\n",
+		},
+		{
+			"Single Cc address, Multiple To addresses",
+			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
+			[]string{"cc@itsallbroken.com"},
+			[]string{},
+			"",
+			"",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc@itsallbroken.com\r\n",
+		},
+		{
+			"Multiple Cc addresses, Multiple To addresses",
+			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
+			[]string{"cc1@itsallbroken.com", "cc2@itsallbroken.com"},
+			[]string{},
+			"",
+			"",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc1@itsallbroken.com\r\nCC: cc2@itsallbroken.com\r\n",
+		},
+
+		{
+			"Single Bcc address, Multiple To addresses",
+			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
+			[]string{},
+			[]string{"bcc@itsallbroken.com"},
+			"",
+			"",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nBCC: bcc@itsallbroken.com\r\n",
+		},
+		{
+			"Multiple Bcc addresses, Multiple To addresses",
+			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
+			[]string{},
+			[]string{"bcc1@itsallbroken.com", "bcc2@itsallbroken.com"},
+			"",
+			"",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nBCC: bcc1@itsallbroken.com\r\nBCC: bcc2@itsallbroken.com\r\n",
+		},
+		{
+			"All together now",
+			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
+			[]string{"cc1@itsallbroken.com", "cc2@itsallbroken.com"},
+			[]string{"bcc1@itsallbroken.com", "bcc2@itsallbroken.com"},
+			"",
+			"",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc1@itsallbroken.com\r\nCC: cc2@itsallbroken.com\r\nBCC: bcc1@itsallbroken.com\r\nBCC: bcc2@itsallbroken.com\r\n",
 		},
 	}
 	for _, tt := range tests {
@@ -95,6 +149,8 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			fromAddr: "dom@itsallbroken.com",
 			fromName: "Dom",
 			replyTo:  tt.rreplyTo,
+			ccAddrs: tt.rccAddrs,
+			bccAddrs: tt.rbccAddrs,
 		}
 
 		buf := &bytes.Buffer{}
@@ -110,15 +166,15 @@ func TestMailYakWriteHeaders(t *testing.T) {
 func TestMailYakWriteBody(t *testing.T) {
 	tests := []struct {
 		// Test description.
-		name string
+		name     string
 		// Receiver fields.
-		rHTML  string
-		rPlain string
+		rHTML    string
+		rPlain   string
 		// Parameters.
 		boundary string
 		// Expected results.
-		wantW   string
-		wantErr bool
+		wantW    string
+		wantErr  bool
 	}{
 		{
 			"Boundary name",
@@ -174,7 +230,7 @@ func TestMailYakWriteBody(t *testing.T) {
 func TestMailYakBuildMime(t *testing.T) {
 	tests := []struct {
 		// Test description.
-		name string
+		name      string
 		// Receiver fields.
 		rHTML     []byte
 		rPlain    []byte
@@ -184,8 +240,8 @@ func TestMailYakBuildMime(t *testing.T) {
 		rfromName string
 		rreplyTo  string
 		// Expected results.
-		want    string
-		wantErr bool
+		want      string
+		wantErr   bool
 	}{
 		{
 			"Empty",
@@ -327,7 +383,7 @@ func TestMailYakBuildMime(t *testing.T) {
 func TestMailYakBuildMime_withAttachments(t *testing.T) {
 	tests := []struct {
 		// Test description.
-		name string
+		name         string
 		// Receiver fields.
 		rHTML        []byte
 		rPlain       []byte
@@ -338,8 +394,8 @@ func TestMailYakBuildMime_withAttachments(t *testing.T) {
 		rreplyTo     string
 		rattachments []attachment
 		// Expected results.
-		wantAttach []string
-		wantErr    bool
+		wantAttach   []string
+		wantErr      bool
 	}{
 		{
 			"No attachment",

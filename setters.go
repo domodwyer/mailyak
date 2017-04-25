@@ -54,6 +54,33 @@ func (m *MailYak) Bcc(addrs ...string) {
 	}
 }
 
+// Cc sets a list of carbon copy (CC) addresses
+//
+// You can pass one or more addresses to this method, which are viewable to the other recipients.
+//
+//	mail.Cc("dom@itsallbroken.com", "another@itsallbroken.com")
+//
+// or pass a slice of strings:
+//
+//	ccs := []string{
+//		"one@itsallbroken.com",
+//		"two@itsallbroken.com"
+//	}
+//
+// 	mail.Cc(ccs...)
+func (m *MailYak) Cc(addrs ...string) {
+	m.ccAddrs = []string{}
+
+	for _, addr := range addrs {
+		trimmed := m.trimRegex.ReplaceAllString(addr, "")
+		if trimmed == "" {
+			continue
+		}
+
+		m.ccAddrs = append(m.ccAddrs, trimmed)
+	}
+}
+
 // From sets the sender email address
 func (m *MailYak) From(addr string) {
 	m.fromAddr = addr
