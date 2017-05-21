@@ -58,19 +58,13 @@ func (m *MailYak) Send() error {
 		return err
 	}
 
-	err = smtp.SendMail(
+	return smtp.SendMail(
 		m.host,
 		m.auth,
 		m.fromAddr,
 		append(m.toAddrs, m.bccAddrs...),
 		buf.Bytes(),
 	)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // MimeBuf returns the buffer containing all the RAW MIME data.
@@ -94,8 +88,20 @@ func (m *MailYak) String() string {
 	for _, a := range m.attachments {
 		att = append(att, "{filename: "+a.filename+"}")
 	}
-	return fmt.Sprintf("&MailYak{from: %q, fromName: %q, html: %v bytes, plain: %v bytes, toAddrs: %v, bccAddrs: %v, subject: %q, host: %q, attachments (%v): %v, auth set: %v}",
-		m.fromAddr, m.fromName, len(m.HTML().String()), len(m.Plain().String()), m.toAddrs, m.bccAddrs, m.subject, m.host, len(att), att, m.auth != nil,
+	return fmt.Sprintf(
+		"&MailYak{from: %q, fromName: %q, html: %v bytes, plain: %v bytes, toAddrs: %v, "+
+			"bccAddrs: %v, subject: %q, host: %q, attachments (%v): %v, auth set: %v}",
+		m.fromAddr,
+		m.fromName,
+		len(m.HTML().String()),
+		len(m.Plain().String()),
+		m.toAddrs,
+		m.bccAddrs,
+		m.subject,
+		m.host,
+		len(att),
+		att,
+		m.auth != nil,
 	)
 }
 

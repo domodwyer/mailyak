@@ -63,14 +63,20 @@ func (m *MailYak) writeAttachments(mixed partCreator, splitter writeWrapper) err
 		}
 
 		encoder := base64.NewEncoder(base64.StdEncoding, splitter.new(part))
-		encoder.Write(h[:hLen])
+		if _, err := encoder.Write(h[:hLen]); err != nil {
+			return err
+		}
 
 		// More to write?
 		if hLen == sniffLen {
-			io.Copy(encoder, item.content)
+			if _, err := io.Copy(encoder, item.content); err != nil {
+				return err
+			}
 		}
 
-		encoder.Close()
+		if err := encoder.Close(); err != nil {
+			return err
+		}
 	}
 
 	return nil

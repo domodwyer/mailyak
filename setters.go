@@ -85,7 +85,7 @@ func (m *MailYak) Cc(addrs ...string) {
 //
 // Users should also consider setting FromName().
 func (m *MailYak) From(addr string) {
-	m.fromAddr = addr
+	m.fromAddr = m.trimRegex.ReplaceAllString(addr, "")
 }
 
 // FromName sets the sender name.
@@ -95,14 +95,14 @@ func (m *MailYak) From(addr string) {
 // 		From Name <sender@example.com>
 //
 func (m *MailYak) FromName(name string) {
-	m.fromName = name
+	m.fromName = m.trimRegex.ReplaceAllString(name, "")
 }
 
 // ReplyTo sets the Reply-To email address.
 //
 // Setting a ReplyTo address is optional.
 func (m *MailYak) ReplyTo(addr string) {
-	m.replyTo = addr
+	m.replyTo = m.trimRegex.ReplaceAllString(addr, "")
 }
 
 // Subject sets the email subject line.
