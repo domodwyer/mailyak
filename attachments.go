@@ -26,7 +26,7 @@ type attachment struct {
 
 // Attach adds an attachment to the email with the given filename.
 //
-// Note: The attachment data isn't read until Send() is called
+// The attachment data isn't read until Send() is called.
 func (m *MailYak) Attach(name string, r io.Reader) {
 	m.attachments = append(m.attachments, attachment{
 		filename: name,
@@ -34,13 +34,13 @@ func (m *MailYak) Attach(name string, r io.Reader) {
 	})
 }
 
-// ClearAttachments removes all current attachments
+// ClearAttachments removes all current attachments.
 func (m *MailYak) ClearAttachments() {
 	m.attachments = []attachment{}
 }
 
 // writeAttachments loops over the attachments, guesses their content-type and
-// writes the data as a line-broken base64 string (using the splitter mutator)
+// writes the data as a line-broken base64 string (using the splitter mutator).
 func (m *MailYak) writeAttachments(mixed partCreator, splitter writeWrapper) error {
 	h := make([]byte, sniffLen)
 

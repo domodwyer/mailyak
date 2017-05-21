@@ -7,14 +7,16 @@ import (
 	"regexp"
 )
 
-// MailYak holds all the necessary information to send an email.
-// It also implements the Emailer interface.
+// TODO: in the future, when aliasing is supported or we're making a breaking
+// API change anyway, change the MailYak struct name to Email.
+
+// MailYak represents an email.
 type MailYak struct {
 	html  BodyPart
 	plain BodyPart
 
 	toAddrs     []string
-	ccAddrs	    []string
+	ccAddrs     []string
 	bccAddrs    []string
 	subject     string
 	fromAddr    string
@@ -26,17 +28,18 @@ type MailYak struct {
 	host        string
 }
 
-// New returns an instance of MailYak initialised with the given SMTP address and
-// authentication credentials
+// New returns an instance of MailYak using host as the SMTP server, and
+// authenticating with auth where required.
 //
-// Note: the host string should include the port (i.e. "smtp.itsallbroken.com:25")
+// host must include the port number (i.e. "smtp.itsallbroken.com:25")
 //
-// 	mail := mailyak.New("smtp.itsallbroken.com:25", smtp.PlainAuth(
-// 		"",
-// 		"username",
-// 		"password",
-// 		"stmp.itsallbroken.com",
-//	))
+// 		mail := mailyak.New("smtp.itsallbroken.com:25", smtp.PlainAuth(
+// 			"",
+// 			"username",
+// 			"password",
+// 			"stmp.itsallbroken.com",
+//		))
+//
 func New(host string, auth smtp.Auth) *MailYak {
 	return &MailYak{
 		host:      host,
@@ -45,10 +48,10 @@ func New(host string, auth smtp.Auth) *MailYak {
 	}
 }
 
-// Send attempts to send the built email
+// Send attempts to send the built email via the configured SMTP server.
 //
-// Attachments are read when Send() is called, and any errors will be returned
-// here.
+// Attachments are read when Send() is called, and any connection/authentication
+// errors will be returned by Send().
 func (m *MailYak) Send() error {
 	buf, err := m.buildMime()
 	if err != nil {
@@ -70,7 +73,10 @@ func (m *MailYak) Send() error {
 	return nil
 }
 
-// MimeBuf returns the buffer containing the RAW MIME data
+// MimeBuf returns the buffer containing all the RAW MIME data.
+//
+// MimeBuf is typically used with an API service such as Amazon SES that does
+// not use an SMTP interface.
 func (m *MailYak) MimeBuf() (*bytes.Buffer, error) {
 	buf, err := m.buildMime()
 	if err != nil {
@@ -79,7 +85,10 @@ func (m *MailYak) MimeBuf() (*bytes.Buffer, error) {
 	return buf, nil
 }
 
-// String makes MailYak struct printable for debugging purposes (conforms to the Stringer interface).
+// String returns a redacted description of the email state, typically for
+// logging or debugging purposes.
+//
+// Authentication information is not included in the returned string.
 func (m *MailYak) String() string {
 	var att []string
 	for _, a := range m.attachments {
@@ -90,12 +99,12 @@ func (m *MailYak) String() string {
 	)
 }
 
-// HTML returns a BodyPart for the HTML email body
+// HTML returns a BodyPart for the HTML email body.
 func (m *MailYak) HTML() *BodyPart {
 	return &m.html
 }
 
-// Plain returns a BodyPart for the plain-text email body
+// Plain returns a BodyPart for the plain-text email body.
 func (m *MailYak) Plain() *BodyPart {
 	return &m.plain
 }
