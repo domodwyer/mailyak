@@ -7,6 +7,8 @@ import (
 )
 
 func TestMailYakTo(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		// Test description.
 		name string
@@ -37,19 +39,26 @@ func TestMailYakTo(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		m := &MailYak{
-			toAddrs:   []string{},
-			trimRegex: regexp.MustCompile("\r?\n"),
-		}
-		m.To(tt.addrs...)
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-		if !reflect.DeepEqual(m.toAddrs, tt.want) {
-			t.Errorf("%q. MailYak.To() = %v, want %v", tt.name, m.toAddrs, tt.want)
-		}
+			m := &MailYak{
+				toAddrs:   []string{},
+				trimRegex: regexp.MustCompile("\r?\n"),
+			}
+			m.To(tt.addrs...)
+
+			if !reflect.DeepEqual(m.toAddrs, tt.want) {
+				t.Errorf("%q. MailYak.To() = %v, want %v", tt.name, m.toAddrs, tt.want)
+			}
+		})
 	}
 }
 
 func TestMailYakBcc(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		// Test description.
 		name string
@@ -80,14 +89,19 @@ func TestMailYakBcc(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		m := &MailYak{
-			bccAddrs:  []string{},
-			trimRegex: regexp.MustCompile("\r?\n"),
-		}
-		m.Bcc(tt.addrs...)
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-		if !reflect.DeepEqual(m.bccAddrs, tt.want) {
-			t.Errorf("%q. MailYak.Bcc() = %v, want %v", tt.name, m.bccAddrs, tt.want)
-		}
+			m := &MailYak{
+				bccAddrs:  []string{},
+				trimRegex: regexp.MustCompile("\r?\n"),
+			}
+			m.Bcc(tt.addrs...)
+
+			if !reflect.DeepEqual(m.bccAddrs, tt.want) {
+				t.Errorf("%q. MailYak.Bcc() = %v, want %v", tt.name, m.bccAddrs, tt.want)
+			}
+		})
 	}
 }

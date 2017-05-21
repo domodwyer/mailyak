@@ -13,14 +13,16 @@ import (
 
 // TestMailYakFromHeader ensures the fromHeader method returns valid headers
 func TestMailYakFromHeader(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		// Test description.
-		name      string
+		name string
 		// Receiver fields.
 		rfromAddr string
 		rfromName string
 		// Expected results.
-		want      string
+		want string
 	}{
 		{
 			"With name",
@@ -42,23 +44,30 @@ func TestMailYakFromHeader(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		m := MailYak{
-			fromAddr: tt.rfromAddr,
-			fromName: tt.rfromName,
-		}
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-		if got := m.fromHeader(); got != tt.want {
-			t.Errorf("%q. MailYak.fromHeader() = %v, want %v", tt.name, got, tt.want)
-		}
+			m := MailYak{
+				fromAddr: tt.rfromAddr,
+				fromName: tt.rfromName,
+			}
+
+			if got := m.fromHeader(); got != tt.want {
+				t.Errorf("%q. MailYak.fromHeader() = %v, want %v", tt.name, got, tt.want)
+			}
+		})
 	}
 }
 
 // TestMailYakWriteHeaders ensures the Mime-Version, Reply-To, From, To and
 // Subject headers are correctly wrote
 func TestMailYakWriteHeaders(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		// Test description.
-		name      string
+		name string
 		// Receiver fields.
 		rtoAddrs  []string
 		rccAddrs  []string
@@ -66,7 +75,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 		rsubject  string
 		rreplyTo  string
 		// Expected results.
-		wantBuf   string
+		wantBuf string
 	}{
 		{
 			"All fields",
@@ -143,38 +152,45 @@ func TestMailYakWriteHeaders(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		m := MailYak{
-			toAddrs:  tt.rtoAddrs,
-			subject:  tt.rsubject,
-			fromAddr: "dom@itsallbroken.com",
-			fromName: "Dom",
-			replyTo:  tt.rreplyTo,
-			ccAddrs: tt.rccAddrs,
-			bccAddrs: tt.rbccAddrs,
-		}
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-		buf := &bytes.Buffer{}
-		m.writeHeaders(buf)
+			m := MailYak{
+				toAddrs:  tt.rtoAddrs,
+				subject:  tt.rsubject,
+				fromAddr: "dom@itsallbroken.com",
+				fromName: "Dom",
+				replyTo:  tt.rreplyTo,
+				ccAddrs:  tt.rccAddrs,
+				bccAddrs: tt.rbccAddrs,
+			}
 
-		if gotBuf := buf.String(); gotBuf != tt.wantBuf {
-			t.Errorf("%q. MailYak.writeHeaders() = %v, want %v", tt.name, gotBuf, tt.wantBuf)
-		}
+			buf := &bytes.Buffer{}
+			m.writeHeaders(buf)
+
+			if gotBuf := buf.String(); gotBuf != tt.wantBuf {
+				t.Errorf("%q. MailYak.writeHeaders() = %v, want %v", tt.name, gotBuf, tt.wantBuf)
+			}
+		})
 	}
 }
 
 // TestMailYakWriteBody ensures the correct MIME parts are wrote for the body
 func TestMailYakWriteBody(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		// Test description.
-		name     string
+		name string
 		// Receiver fields.
-		rHTML    string
-		rPlain   string
+		rHTML  string
+		rPlain string
 		// Parameters.
 		boundary string
 		// Expected results.
-		wantW    string
-		wantErr  bool
+		wantW   string
+		wantErr bool
 	}{
 		{
 			"Boundary name",
@@ -210,27 +226,33 @@ func TestMailYakWriteBody(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		m := MailYak{}
-		m.HTML().WriteString(tt.rHTML)
-		m.Plain().WriteString(tt.rPlain)
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-		w := &bytes.Buffer{}
-		if err := m.writeBody(w, tt.boundary); (err != nil) != tt.wantErr {
-			t.Errorf("%q. MailYak.writeBody() error = %v, wantErr %v", tt.name, err, tt.wantErr)
-			continue
-		}
+			m := MailYak{}
+			m.HTML().WriteString(tt.rHTML)
+			m.Plain().WriteString(tt.rPlain)
 
-		if gotW := w.String(); gotW != tt.wantW {
-			t.Errorf("%q. MailYak.writeBody() = %v, want %v", tt.name, gotW, tt.wantW)
-		}
+			w := &bytes.Buffer{}
+			if err := m.writeBody(w, tt.boundary); (err != nil) != tt.wantErr {
+				t.Fatalf("%q. MailYak.writeBody() error = %v, wantErr %v", tt.name, err, tt.wantErr)
+			}
+
+			if gotW := w.String(); gotW != tt.wantW {
+				t.Errorf("%q. MailYak.writeBody() = %v, want %v", tt.name, gotW, tt.wantW)
+			}
+		})
 	}
 }
 
 // TestMailYakBuildMime tests all the other mime-related bits combine in a sane way
 func TestMailYakBuildMime(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		// Test description.
-		name      string
+		name string
 		// Receiver fields.
 		rHTML     []byte
 		rPlain    []byte
@@ -240,8 +262,8 @@ func TestMailYakBuildMime(t *testing.T) {
 		rfromName string
 		rreplyTo  string
 		// Expected results.
-		want      string
-		wantErr   bool
+		want    string
+		wantErr bool
 	}{
 		{
 			"Empty",
@@ -356,34 +378,40 @@ func TestMailYakBuildMime(t *testing.T) {
 	regex := regexp.MustCompile("\r?\n")
 
 	for _, tt := range tests {
-		m := &MailYak{
-			toAddrs:   tt.rtoAddrs,
-			subject:   tt.rsubject,
-			fromAddr:  tt.rfromAddr,
-			fromName:  tt.rfromName,
-			replyTo:   tt.rreplyTo,
-			trimRegex: regex,
-		}
-		m.HTML().Write(tt.rHTML)
-		m.Plain().Write(tt.rPlain)
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-		got, err := m.buildMimeWithBoundaries("mixed", "alt")
-		if (err != nil) != tt.wantErr {
-			t.Errorf("%q. MailYak.buildMime() error = %v, wantErr %v", tt.name, err, tt.wantErr)
-			continue
-		}
+			m := &MailYak{
+				toAddrs:   tt.rtoAddrs,
+				subject:   tt.rsubject,
+				fromAddr:  tt.rfromAddr,
+				fromName:  tt.rfromName,
+				replyTo:   tt.rreplyTo,
+				trimRegex: regex,
+			}
+			m.HTML().Write(tt.rHTML)
+			m.Plain().Write(tt.rPlain)
 
-		if got.String() != tt.want {
-			t.Errorf("%q. MailYak.buildMime() = %v, want %v", tt.name, got, tt.want)
-		}
+			got, err := m.buildMimeWithBoundaries("mixed", "alt")
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("%q. MailYak.buildMime() error = %v, wantErr %v", tt.name, err, tt.wantErr)
+			}
+
+			if got.String() != tt.want {
+				t.Errorf("%q. MailYak.buildMime() = %v, want %v", tt.name, got, tt.want)
+			}
+		})
 	}
 }
 
 // TestMailYakBuildMime_withAttachments ensures attachments are correctly added to the MIME message
 func TestMailYakBuildMime_withAttachments(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		// Test description.
-		name         string
+		name string
 		// Receiver fields.
 		rHTML        []byte
 		rPlain       []byte
@@ -394,8 +422,8 @@ func TestMailYakBuildMime_withAttachments(t *testing.T) {
 		rreplyTo     string
 		rattachments []attachment
 		// Expected results.
-		wantAttach   []string
-		wantErr      bool
+		wantAttach []string
+		wantErr    bool
 	}{
 		{
 			"No attachment",
@@ -446,69 +474,73 @@ func TestMailYakBuildMime_withAttachments(t *testing.T) {
 	regex := regexp.MustCompile("\r?\n")
 
 	for _, tt := range tests {
-		m := &MailYak{
-			toAddrs:     tt.rtoAddrs,
-			subject:     tt.rsubject,
-			fromAddr:    tt.rfromAddr,
-			fromName:    tt.rfromName,
-			replyTo:     tt.rreplyTo,
-			attachments: tt.rattachments,
-			trimRegex:   regex,
-		}
-		m.HTML().Write(tt.rHTML)
-		m.Plain().Write(tt.rPlain)
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-		got, err := m.buildMimeWithBoundaries("mixed", "alt")
-		if (err != nil) != tt.wantErr {
-			t.Errorf("%q. MailYak.buildMime() error = %v, wantErr %v", tt.name, err, tt.wantErr)
-			continue
-		}
-
-		seen := 0
-		mr := multipart.NewReader(got, "mixed")
-
-		// Itterate over the mime parts, look for attachments
-		for {
-			p, err := mr.NextPart()
-			if err == io.EOF {
-				break
+			m := &MailYak{
+				toAddrs:     tt.rtoAddrs,
+				subject:     tt.rsubject,
+				fromAddr:    tt.rfromAddr,
+				fromName:    tt.rfromName,
+				replyTo:     tt.rreplyTo,
+				attachments: tt.rattachments,
+				trimRegex:   regex,
 			}
-			if err != nil {
-				t.Errorf("%q. MailYak.buildMime() error = %v, wantErr %v", tt.name, err, tt.wantErr)
+			m.HTML().Write(tt.rHTML)
+			m.Plain().Write(tt.rPlain)
+
+			got, err := m.buildMimeWithBoundaries("mixed", "alt")
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("%q. MailYak.buildMime() error = %v, wantErr %v", tt.name, err, tt.wantErr)
 			}
 
-			// Read the attachment data
-			slurp, err := ioutil.ReadAll(p)
-			if err != nil {
-				t.Errorf("%q. MailYak.buildMime() error = %v, wantErr %v", tt.name, err, tt.wantErr)
-			}
+			seen := 0
+			mr := multipart.NewReader(got, "mixed")
 
-			// Skip non-attachments
-			if p.Header.Get("Content-Disposition") == "" {
-				continue
-			}
+			// Itterate over the mime parts, look for attachments
+			for {
+				p, err := mr.NextPart()
+				if err == io.EOF {
+					break
+				}
+				if err != nil {
+					t.Errorf("%q. MailYak.buildMime() error = %v, wantErr %v", tt.name, err, tt.wantErr)
+				}
 
-			// Run through our attachments looking for a match
-			for i, attch := range tt.rattachments {
-				// Check Disposition header
-				if p.Header.Get("Content-Disposition") != fmt.Sprintf("attachment; filename=%s", attch.filename) {
+				// Read the attachment data
+				slurp, err := ioutil.ReadAll(p)
+				if err != nil {
+					t.Errorf("%q. MailYak.buildMime() error = %v, wantErr %v", tt.name, err, tt.wantErr)
+				}
+
+				// Skip non-attachments
+				if p.Header.Get("Content-Disposition") == "" {
 					continue
 				}
 
-				// Check data
-				if !bytes.Equal(slurp, []byte(tt.wantAttach[i])) {
-					fmt.Printf("Part %q: %q\n", p.Header.Get("Content-Disposition"), slurp)
-					continue
+				// Run through our attachments looking for a match
+				for i, attch := range tt.rattachments {
+					// Check Disposition header
+					if p.Header.Get("Content-Disposition") != fmt.Sprintf("attachment; filename=%s", attch.filename) {
+						continue
+					}
+
+					// Check data
+					if !bytes.Equal(slurp, []byte(tt.wantAttach[i])) {
+						fmt.Printf("Part %q: %q\n", p.Header.Get("Content-Disposition"), slurp)
+						continue
+					}
+
+					seen++
 				}
 
-				seen++
 			}
 
-		}
-
-		// Did we see all the expected attachments?
-		if seen != len(tt.rattachments) {
-			t.Errorf("%q. MailYak.buildMime() didn't find all attachments in mime body", tt.name)
-		}
+			// Did we see all the expected attachments?
+			if seen != len(tt.rattachments) {
+				t.Errorf("%q. MailYak.buildMime() didn't find all attachments in mime body", tt.name)
+			}
+		})
 	}
 }

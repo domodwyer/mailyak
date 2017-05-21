@@ -9,6 +9,8 @@ import (
 
 // TestMailYakStringer ensures MailYak struct conforms to the Stringer interface.
 func TestMailYakStringer(t *testing.T) {
+	t.Parallel()
+
 	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
 	mail.From("from@example.org")
 	mail.FromName("From Example")

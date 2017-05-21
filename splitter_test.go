@@ -8,6 +8,8 @@ import (
 
 // TestLineSplitterWrite ensures various length data is correctly broken up
 func TestLineSplitterWrite(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		// Parameters.
@@ -54,8 +56,22 @@ func TestLineSplitterWrite(t *testing.T) {
 				0x73, 0x2e, 0x63, 0x73, 0x76, 0x55, 0x54, 0x05, 0x00, 0x03, 0x5f, 0x4d, 0x61, 0x57, 0x75, 0x78,
 				0x0b, 0x00, 0x01, 0x04, 0xe8, 0x03, 0x00, 0x00, 0x04, 0xe8, 0x03, 0x00, 0x00, 0x50, 0x4b, 0x05,
 				0x06, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x73, 0x00, 0x00, 0x00, 0xca, 0x01, 0x00,
-				0x00, 0x00, 0x00},
-			"UEsDBBQACQAIAGZtz0i0+HHdUwEAANABAAAtABwAZGVhbF82OTAwMjRfMjAx\r\nNi0wNi0xNS0xMzQzX2xhdGVzdF9vcmRlcnMuY3N2VVQJAANfTWFXXk1hV3V4\r\nCwABBOgDAAAE6AMAAM7PPgk5LEFORgHGXJbXelo896dK+mLtyDQU/2kTHLbi\r\nl5T5vks3UmJF4L/a11rp7uEvM54eyZlIgEsV9WFaIWbOXxxqu5Flow/rX8So\r\nn4IRHfKcnZQfvYAciqWArj9AUIhLW2d1xp5tI4TionlpYcQDGsTES/m+4V7h\r\n2LD1HsjWsDQih6xlpwpzcl4zdYHvfpHfBBeQ66n6kl60D+MKaIPHx3U6tLeB\r\nF18nruBbCpCtbozGAQq357r9HX8H4djmYTMiY+NwSdNwTREGBTLZXv1yZO9e\r\n+NSYpujhb4fVBZbzOmCHfpRpzWl/i467Leuhhi/pbYc2LuTg7Ghwjn4m13P3\r\nB7lcoAhRyVB8sO+tig09XWp9bFk2UwSqWy5jW9UABoS8bD71x1IdSMVhGmkv\r\nuoM04dqzP9YxidIQsrp+natL9zPFBl6RX6b74zi9OYD1sktt21BLBwi0+HHd\r\nUwEAANABAABQSwECHgMUAAkACABmbc9ItPhx3VMBAADQAQAALQAYAAAAAAAB\r\nAAAAtIEAAAAAZGVhbF82OTAwMjRfMjAxNi0wNi0xNS0xMzQzX2xhdGVzdF9v\r\ncmRlcnMuY3N2VVQFAANfTWFXdXgLAAEE6AMAAAToAwAAUEsFBgAAAAABAAEA\r\ncwAAAMoBAAAAAA==",
+				0x00, 0x00, 0x00,
+			},
+			"UEsDBBQACQAIAGZtz0i0+HHdUwEAANABAAAtABwAZGVhbF82OTAwMjRfMjAx\r\n" +
+				"Ni0wNi0xNS0xMzQzX2xhdGVzdF9vcmRlcnMuY3N2VVQJAANfTWFXXk1hV3V4\r\n" +
+				"CwABBOgDAAAE6AMAAM7PPgk5LEFORgHGXJbXelo896dK+mLtyDQU/2kTHLbi\r\n" +
+				"l5T5vks3UmJF4L/a11rp7uEvM54eyZlIgEsV9WFaIWbOXxxqu5Flow/rX8So\r\n" +
+				"n4IRHfKcnZQfvYAciqWArj9AUIhLW2d1xp5tI4TionlpYcQDGsTES/m+4V7h\r\n" +
+				"2LD1HsjWsDQih6xlpwpzcl4zdYHvfpHfBBeQ66n6kl60D+MKaIPHx3U6tLeB\r\n" +
+				"F18nruBbCpCtbozGAQq357r9HX8H4djmYTMiY+NwSdNwTREGBTLZXv1yZO9e\r\n" +
+				"+NSYpujhb4fVBZbzOmCHfpRpzWl/i467Leuhhi/pbYc2LuTg7Ghwjn4m13P3\r\n" +
+				"B7lcoAhRyVB8sO+tig09XWp9bFk2UwSqWy5jW9UABoS8bD71x1IdSMVhGmkv\r\n" +
+				"uoM04dqzP9YxidIQsrp+natL9zPFBl6RX6b74zi9OYD1sktt21BLBwi0+HHd\r\n" +
+				"UwEAANABAABQSwECHgMUAAkACABmbc9ItPhx3VMBAADQAQAALQAYAAAAAAAB\r\n" +
+				"AAAAtIEAAAAAZGVhbF82OTAwMjRfMjAxNi0wNi0xNS0xMzQzX2xhdGVzdF9v\r\n" +
+				"cmRlcnMuY3N2VVQFAANfTWFXdXgLAAEE6AMAAAToAwAAUEsFBgAAAAABAAEA\r\n" +
+				"cwAAAMoBAAAAAA==",
 		},
 		{
 			"test",
@@ -64,26 +80,37 @@ func TestLineSplitterWrite(t *testing.T) {
 		},
 		{
 			"sentance",
-			[]byte("A man may fight for many things. His country, his principles, his friends. The glistening tear on the cheek of a golden child. But personally, I'd mud-wrestle my own mother for a ton of cash, an amusing clock and a sack of French porn."),
-			"QSBtYW4gbWF5IGZpZ2h0IGZvciBtYW55IHRoaW5ncy4gSGlzIGNvdW50cnks\r\nIGhpcyBwcmluY2lwbGVzLCBoaXMgZnJpZW5kcy4gVGhlIGdsaXN0ZW5pbmcg\r\ndGVhciBvbiB0aGUgY2hlZWsgb2YgYSBnb2xkZW4gY2hpbGQuIEJ1dCBwZXJz\r\nb25hbGx5LCBJJ2QgbXVkLXdyZXN0bGUgbXkgb3duIG1vdGhlciBmb3IgYSB0\r\nb24gb2YgY2FzaCwgYW4gYW11c2luZyBjbG9jayBhbmQgYSBzYWNrIG9mIEZy\r\nZW5jaCBwb3JuLg==",
+			[]byte("A man may fight for many things. His country, his principles, his friends. " +
+				"The glistening tear on the cheek of a golden child. But personally, I'd mud-wrestle " +
+				"my own mother for a ton of cash, an amusing clock and a sack of French porn."),
+			"QSBtYW4gbWF5IGZpZ2h0IGZvciBtYW55IHRoaW5ncy4gSGlzIGNvdW50cnks\r\n" +
+				"IGhpcyBwcmluY2lwbGVzLCBoaXMgZnJpZW5kcy4gVGhlIGdsaXN0ZW5pbmcg\r\n" +
+				"dGVhciBvbiB0aGUgY2hlZWsgb2YgYSBnb2xkZW4gY2hpbGQuIEJ1dCBwZXJz\r\n" +
+				"b25hbGx5LCBJJ2QgbXVkLXdyZXN0bGUgbXkgb3duIG1vdGhlciBmb3IgYSB0\r\n" +
+				"b24gb2YgY2FzaCwgYW4gYW11c2luZyBjbG9jayBhbmQgYSBzYWNrIG9mIEZy\r\n" +
+				"ZW5jaCBwb3JuLg==",
 		},
 	}
 	for _, tt := range tests {
-		var buf bytes.Buffer
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-		w := &lineSplitter{w: &buf, maxLen: maxLineLen}
+			var buf bytes.Buffer
 
-		encoder := base64.NewEncoder(base64.StdEncoding, w)
-		_, err := encoder.Write(tt.p)
-		encoder.Close()
+			w := &lineSplitter{w: &buf, maxLen: maxLineLen}
 
-		if err != nil {
-			t.Errorf("%q. base64LineWriter.Write() error = %v", tt.name, err)
-			continue
-		}
+			encoder := base64.NewEncoder(base64.StdEncoding, w)
+			_, err := encoder.Write(tt.p)
+			encoder.Close()
 
-		if buf.String() != tt.want {
-			t.Errorf("%q. base64LineWriter.Write() = \n%v\n, want \n%v\n", tt.name, buf.String(), tt.want)
-		}
+			if err != nil {
+				t.Fatalf("%q. base64LineWriter.Write() error = %v", tt.name, err)
+			}
+
+			if buf.String() != tt.want {
+				t.Errorf("%q. base64LineWriter.Write() = \n%v\n, want \n%v\n", tt.name, buf.String(), tt.want)
+			}
+		})
 	}
 }
