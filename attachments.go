@@ -11,13 +11,6 @@ import (
 // DetectContentType needs at most 512 bytes
 const sniffLen = 512
 
-// AttachmentEmailer extends the Emailer interface to provide attachment support
-type AttachmentEmailer interface {
-	Emailer
-	Attach(name string, data io.Reader)
-	ClearAttachments()
-}
-
 type partCreator interface {
 	CreatePart(header textproto.MIMEHeader) (io.Writer, error)
 }

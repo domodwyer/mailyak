@@ -7,19 +7,6 @@ import (
 	"regexp"
 )
 
-// Emailer defines the interface implemented by MailYak
-type Emailer interface {
-	To(addrs ...string)
-	Bcc(addrs ...string)
-	Subject(sub string)
-	From(addr string)
-	FromName(name string)
-	ReplyTo(addr string)
-	Send() error
-	HTML() *BodyPart
-	Plain() *BodyPart
-}
-
 // MailYak holds all the necessary information to send an email.
 // It also implements the Emailer interface.
 type MailYak struct {
