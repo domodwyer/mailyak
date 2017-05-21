@@ -11,13 +11,6 @@ import (
 // DetectContentType needs at most 512 bytes
 const sniffLen = 512
 
-// AttachmentEmailer extends the Emailer interface to provide attachment support
-type AttachmentEmailer interface {
-	Emailer
-	Attach(name string, data io.Reader)
-	ClearAttachments()
-}
-
 type partCreator interface {
 	CreatePart(header textproto.MIMEHeader) (io.Writer, error)
 }
@@ -33,7 +26,7 @@ type attachment struct {
 
 // Attach adds an attachment to the email with the given filename.
 //
-// Note: The attachment data isn't read until Send() is called
+// The attachment data isn't read until Send() is called.
 func (m *MailYak) Attach(name string, r io.Reader) {
 	m.attachments = append(m.attachments, attachment{
 		filename: name,
@@ -41,13 +34,13 @@ func (m *MailYak) Attach(name string, r io.Reader) {
 	})
 }
 
-// ClearAttachments removes all current attachments
+// ClearAttachments removes all current attachments.
 func (m *MailYak) ClearAttachments() {
 	m.attachments = []attachment{}
 }
 
 // writeAttachments loops over the attachments, guesses their content-type and
-// writes the data as a line-broken base64 string (using the splitter mutator)
+// writes the data as a line-broken base64 string (using the splitter mutator).
 func (m *MailYak) writeAttachments(mixed partCreator, splitter writeWrapper) error {
 	h := make([]byte, sniffLen)
 
@@ -70,14 +63,20 @@ func (m *MailYak) writeAttachments(mixed partCreator, splitter writeWrapper) err
 		}
 
 		encoder := base64.NewEncoder(base64.StdEncoding, splitter.new(part))
-		encoder.Write(h[:hLen])
+		if _, err := encoder.Write(h[:hLen]); err != nil {
+			return err
+		}
 
 		// More to write?
 		if hLen == sniffLen {
-			io.Copy(encoder, item.content)
+			if _, err := io.Copy(encoder, item.content); err != nil {
+				return err
+			}
 		}
 
-		encoder.Close()
+		if err := encoder.Close(); err != nil {
+			return err
+		}
 	}
 
 	return nil

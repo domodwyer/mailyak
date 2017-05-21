@@ -37,8 +37,8 @@ func Example() {
 
 func Example_attachments() {
 	// This will be our attachment data
-	buf := bytes.Buffer{}
-	io.WriteString(&buf, "We're in the stickiest situation since Sticky the Stick Insect got stuck on a sticky bun.")
+	buf := &bytes.Buffer{}
+	io.WriteString(buf, "We're in the stickiest situation since Sticky the Stick Insect got stuck on a sticky bun.")
 
 	// Create a new email - specify the SMTP host and auth
 	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
@@ -48,7 +48,7 @@ func Example_attachments() {
 	mail.HTML().Set("I am an email")
 
 	// buf could be anything that implements io.Reader
-	mail.Attach("sticky.txt", &buf)
+	mail.Attach("sticky.txt", buf)
 
 	if err := mail.Send(); err != nil {
 		panic(" :( ")

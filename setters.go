@@ -1,6 +1,6 @@
 package mailyak
 
-// To sets a list of recipient addresses to send the email to
+// To sets a list of recipient addresses.
 //
 // You can pass one or more addresses to this method, all of which are viewable to the recipients.
 //
@@ -27,7 +27,7 @@ func (m *MailYak) To(addrs ...string) {
 	}
 }
 
-// Bcc sets a list of blind carbon copy (BCC) addresses
+// Bcc sets a list of blind carbon copy (BCC) addresses.
 //
 // You can pass one or more addresses to this method, none of which are viewable to the recipients.
 //
@@ -54,7 +54,7 @@ func (m *MailYak) Bcc(addrs ...string) {
 	}
 }
 
-// Cc sets a list of carbon copy (CC) addresses
+// Cc sets a list of carbon copy (CC) addresses.
 //
 // You can pass one or more addresses to this method, which are viewable to the other recipients.
 //
@@ -81,22 +81,31 @@ func (m *MailYak) Cc(addrs ...string) {
 	}
 }
 
-// From sets the sender email address
+// From sets the sender email address.
+//
+// Users should also consider setting FromName().
 func (m *MailYak) From(addr string) {
-	m.fromAddr = addr
+	m.fromAddr = m.trimRegex.ReplaceAllString(addr, "")
 }
 
-// FromName sets the sender name
+// FromName sets the sender name.
+//
+// If set, emails typically display as being from:
+//
+// 		From Name <sender@example.com>
+//
 func (m *MailYak) FromName(name string) {
-	m.fromName = name
+	m.fromName = m.trimRegex.ReplaceAllString(name, "")
 }
 
-// ReplyTo sends the Reply-To email address
+// ReplyTo sets the Reply-To email address.
+//
+// Setting a ReplyTo address is optional.
 func (m *MailYak) ReplyTo(addr string) {
-	m.replyTo = addr
+	m.replyTo = m.trimRegex.ReplaceAllString(addr, "")
 }
 
-// Subject sets the email subject line
+// Subject sets the email subject line.
 func (m *MailYak) Subject(sub string) {
 	m.subject = m.trimRegex.ReplaceAllString(sub, "")
 }

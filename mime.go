@@ -23,6 +23,11 @@ func (m *MailYak) buildMime() (*bytes.Buffer, error) {
 	return m.buildMimeWithBoundaries(mb, ab)
 }
 
+// randomBoundary returns a random hexadecimal string used for separating MIME
+// parts.
+//
+// The returned string must be sufficiently random to prevent malicious users
+// from performing content injection attacks.
 func randomBoundary() (string, error) {
 	buf := make([]byte, 30)
 	_, err := io.ReadFull(rand.Reader, buf)
@@ -32,15 +37,20 @@ func randomBoundary() (string, error) {
 	return fmt.Sprintf("%x", buf), nil
 }
 
-// buildMimeWithBoundaries creates the MIME message and returns it as a buffer
+// buildMimeWithBoundaries creates the MIME message using mb and ab as MIME
+// boundaries, and returns the generated MIME data as a buffer.
 func (m *MailYak) buildMimeWithBoundaries(mb, ab string) (*bytes.Buffer, error) {
 	var buf bytes.Buffer
 
-	m.writeHeaders(&buf)
+	if err := m.writeHeaders(&buf); err != nil {
+		return nil, err
+	}
 
 	// Start our multipart/mixed part
 	mixed := multipart.NewWriter(&buf)
-	mixed.SetBoundary(mb)
+	if err := mixed.SetBoundary(mb); err != nil {
+		return nil, err
+	}
 	defer mixed.Close()
 
 	fmt.Fprintf(&buf, "Content-Type: multipart/mixed;\r\n\tboundary=\"%s\"; charset=UTF-8\r\n\r\n", mixed.Boundary())
@@ -63,11 +73,16 @@ func (m *MailYak) buildMimeWithBoundaries(mb, ab string) (*bytes.Buffer, error) 
 	return &buf, nil
 }
 
-// writeHeaders writes the Mime-Version, Reply-To, From, To and Subject headers
-func (m *MailYak) writeHeaders(buf io.Writer) {
+// writeHeaders writes the Mime-Version, Reply-To, From, To and Subject headers.
+func (m *MailYak) writeHeaders(buf io.Writer) error {
 
-	buf.Write([]byte(m.fromHeader()))
-	buf.Write([]byte("Mime-Version: 1.0\r\n"))
+	if _, err := buf.Write([]byte(m.fromHeader())); err != nil {
+		return err
+	}
+
+	if _, err := buf.Write([]byte("Mime-Version: 1.0\r\n")); err != nil {
+		return err
+	}
 
 	if m.replyTo != "" {
 		fmt.Fprintf(buf, "Reply-To: %s\r\n", m.replyTo)
@@ -86,10 +101,12 @@ func (m *MailYak) writeHeaders(buf io.Writer) {
 	for _, bcc := range m.bccAddrs {
 		fmt.Fprintf(buf, "BCC: %s\r\n", bcc)
 	}
+
+	return nil
 }
 
 // fromHeader returns a correctly formatted From header, optionally with a name
-// component
+// component.
 func (m *MailYak) fromHeader() string {
 	if m.fromName == "" {
 		return fmt.Sprintf("From: %s\r\n", m.fromAddr)
@@ -98,12 +115,14 @@ func (m *MailYak) fromHeader() string {
 	return fmt.Sprintf("From: %s <%s>\r\n", m.fromName, m.fromAddr)
 }
 
-// writeBody writes the text/plain and text/html mime parts
+// writeBody writes the text/plain and text/html mime parts.
 func (m *MailYak) writeBody(w io.Writer, boundary string) error {
 	alt := multipart.NewWriter(w)
 	defer alt.Close()
 
-	alt.SetBoundary(boundary)
+	if err := alt.SetBoundary(boundary); err != nil {
+		return err
+	}
 
 	var err error
 	writePart := func(ctype string, data []byte) {
@@ -113,13 +132,13 @@ func (m *MailYak) writeBody(w io.Writer, boundary string) error {
 
 		c := fmt.Sprintf("%s; charset=UTF-8", ctype)
 
-		part, err2 := alt.CreatePart(textproto.MIMEHeader{"Content-Type": {c}})
-		if err2 != nil {
-			err = err2
+		var part io.Writer
+		part, err = alt.CreatePart(textproto.MIMEHeader{"Content-Type": {c}})
+		if err != nil {
 			return
 		}
 
-		part.Write(data)
+		_, err = part.Write(data)
 	}
 
 	writePart("text/plain", m.plain.Bytes())

@@ -7,9 +7,8 @@ const maxLineLen = 60
 // lineSplitter breaks the given input into lines of maxLineLen characters
 // before writing a "\r\n" newline
 type lineSplitter struct {
-	w       io.Writer
-	lineLen int
-	maxLen  int
+	w      io.Writer
+	maxLen int
 }
 
 type lineSplitterBuilder struct{}
