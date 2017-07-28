@@ -22,15 +22,25 @@ type writeWrapper interface {
 type attachment struct {
 	filename string
 	content  io.Reader
+	inline   bool
+}
+
+func (m *MailYak) Attach(name string, r io.Reader) {
+	m.attach(name, r, false)
+}
+
+func (m *MailYak) AttachInline(name string, r io.Reader) {
+	m.attach(name, r, true)
 }
 
 // Attach adds an attachment to the email with the given filename.
 //
 // The attachment data isn't read until Send() is called.
-func (m *MailYak) Attach(name string, r io.Reader) {
+func (m *MailYak) attach(name string, r io.Reader, inline bool) {
 	m.attachments = append(m.attachments, attachment{
 		filename: name,
 		content:  r,
+		inline: inline,
 	})
 }
 
@@ -51,13 +61,8 @@ func (m *MailYak) writeAttachments(mixed partCreator, splitter writeWrapper) err
 		}
 
 		ctype := fmt.Sprintf("%s;\n\tfilename=%s", http.DetectContentType(h[:hLen]), item.filename)
-		disp := fmt.Sprintf("attachment;\n\tfilename=%s", item.filename)
 
-		part, err := mixed.CreatePart(textproto.MIMEHeader{
-			"Content-Type":              {ctype},
-			"Content-Disposition":       {disp},
-			"Content-Transfer-Encoding": {"base64"},
-		})
+		part, err := mixed.CreatePart(getMIMEHeader(item, ctype))
 		if err != nil {
 			return err
 		}
@@ -80,4 +85,29 @@ func (m *MailYak) writeAttachments(mixed partCreator, splitter writeWrapper) err
 	}
 
 	return nil
+}
+
+func getMIMEHeader(a attachment, ctype string) textproto.MIMEHeader {
+	var disp string
+	var header textproto.MIMEHeader
+
+	if a.inline {
+		disp = fmt.Sprintf("inline;\n\tfilename=%s", a.filename)
+		header = textproto.MIMEHeader{
+			"Content-Type":              {ctype},
+			"Content-Disposition":       {disp},
+			"Content-Transfer-Encoding": {"base64"},
+		}
+	} else {
+		disp = fmt.Sprintf("attachment;\n\tfilename=%s", a.filename)
+		cid := fmt.Sprintf("<%s>", a.filename)
+		header = textproto.MIMEHeader{
+			"Content-Type":              {ctype},
+			"Content-Disposition":       {disp},
+			"Content-Transfer-Encoding": {"base64"},
+			"Content-ID":				 {cid},
+		}
+	}
+
+	return header
 }
