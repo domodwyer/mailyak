@@ -132,7 +132,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 						"If Baldrick served a meal at HQ he would be arrested for the biggest " +
 							"mass poisoning since Lucretia Borgia invited 500 friends for a Wine and Anthrax Party.",
 					),
-					false
+					false,
 				},
 			},
 			"text/plain; charset=utf-8;\n\tfilename=partyinvite.txt",
@@ -159,7 +159,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 							`for an encore goes on to prove that black is white and gets himself killed on the next ` +
 							`zebra crossing.`,
 					),
-					false
+					false,
 				},
 			},
 			"text/plain; charset=utf-8;\n\tfilename=qed.txt",
@@ -310,7 +310,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"Proin luctus nec nisl at imperdiet. Nulla dapibus purus ut lorem faucibus, at gravida " +
 							"tellus euismod. Curabitur ex risus, egestas in porta amet.",
 					),
-					false
+					false,
 				},
 				{
 					"520.txt", strings.NewReader(
@@ -321,7 +321,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"accumsan porta sapien, in consequat mauris fermentum ac. In at sem lobortis, auctor metus " +
 							"rutrum, blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
 					),
-					false
+					false,
 				},
 			},
 			[]testAttachment{
@@ -369,7 +369,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"porta sapien, in consequat mauris fermentum ac. In at sem lobortis, auctor metus rutrum, " +
 							"blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
 					),
-					false
+					false,
 				},
 				{
 					"550.txt",
@@ -382,7 +382,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"at imperdiet. Nulla dapibus purus ut lorem faucibus, at gravida tellus euismod. Curabitur " +
 							"ex risus, egestas in porta amet.",
 					),
-					false
+					false,
 				},
 			},
 			[]testAttachment{
