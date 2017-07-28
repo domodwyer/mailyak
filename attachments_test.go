@@ -70,7 +70,7 @@ func TestMailYakAttach(t *testing.T) {
 		},
 		{
 			"From one",
-			[]attachment{{"Existing", &bytes.Buffer{}}},
+			[]attachment{{"Existing", &bytes.Buffer{}, false}},
 			"test",
 			&bytes.Buffer{},
 			2,
@@ -109,7 +109,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 	}{
 		{
 			"Empty",
-			[]attachment{{"Empty", &bytes.Buffer{}}},
+			[]attachment{{"Empty", &bytes.Buffer{}, false}},
 			"text/plain; charset=utf-8;\n\tfilename=Empty",
 			"attachment;\n\tfilename=Empty",
 			"",
@@ -117,7 +117,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 		},
 		{
 			"Short string",
-			[]attachment{{"advice", strings.NewReader("Don't Panic")}},
+			[]attachment{{"advice", strings.NewReader("Don't Panic"), false}},
 			"text/plain; charset=utf-8;\n\tfilename=advice",
 			"attachment;\n\tfilename=advice",
 			"RG9uJ3QgUGFuaWM=",
@@ -132,6 +132,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 						"If Baldrick served a meal at HQ he would be arrested for the biggest " +
 							"mass poisoning since Lucretia Borgia invited 500 friends for a Wine and Anthrax Party.",
 					),
+					false,
 				},
 			},
 			"text/plain; charset=utf-8;\n\tfilename=partyinvite.txt",
@@ -158,6 +159,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 							`for an encore goes on to prove that black is white and gets himself killed on the next ` +
 							`zebra crossing.`,
 					),
+					false,
 				},
 			},
 			"text/plain; charset=utf-8;\n\tfilename=qed.txt",
@@ -181,7 +183,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 		},
 		{
 			"HTML",
-			[]attachment{{"name.html", strings.NewReader("<html><head></head></html>")}},
+			[]attachment{{"name.html", strings.NewReader("<html><head></head></html>"), false}},
 			"text/html; charset=utf-8;\n\tfilename=name.html",
 			"attachment;\n\tfilename=name.html",
 			"PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4=",
@@ -189,7 +191,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 		},
 		{
 			"HTML - wrong extension",
-			[]attachment{{"name.png", strings.NewReader("<html><head></head></html>")}},
+			[]attachment{{"name.png", strings.NewReader("<html><head></head></html>"), false}},
 			"text/html; charset=utf-8;\n\tfilename=name.png",
 			"attachment;\n\tfilename=name.png",
 			"PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4=",
@@ -244,7 +246,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 	}{
 		{
 			"Single Attachment",
-			[]attachment{{"name.txt", strings.NewReader("test")}},
+			[]attachment{{"name.txt", strings.NewReader("test"), false}},
 			[]testAttachment{
 				{
 					contentType: "text/plain; charset=utf-8;\n\tfilename=name.txt",
@@ -257,8 +259,8 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 		{
 			"Multiple Attachment - same types",
 			[]attachment{
-				{"name.txt", strings.NewReader("test")},
-				{"different.txt", strings.NewReader("another")},
+				{"name.txt", strings.NewReader("test"), false},
+				{"different.txt", strings.NewReader("another"), false},
 			},
 			[]testAttachment{
 				{
@@ -277,8 +279,8 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 		{
 			"Multiple Attachment - different types",
 			[]attachment{
-				{"name.txt", strings.NewReader("test")},
-				{"html.txt", strings.NewReader("<html><head></head></html>")},
+				{"name.txt", strings.NewReader("test"), false},
+				{"html.txt", strings.NewReader("<html><head></head></html>"), false},
 			},
 			[]testAttachment{
 				{
@@ -308,6 +310,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"Proin luctus nec nisl at imperdiet. Nulla dapibus purus ut lorem faucibus, at gravida " +
 							"tellus euismod. Curabitur ex risus, egestas in porta amet.",
 					),
+					false,
 				},
 				{
 					"520.txt", strings.NewReader(
@@ -318,6 +321,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"accumsan porta sapien, in consequat mauris fermentum ac. In at sem lobortis, auctor metus " +
 							"rutrum, blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
 					),
+					false,
 				},
 			},
 			[]testAttachment{
@@ -365,6 +369,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"porta sapien, in consequat mauris fermentum ac. In at sem lobortis, auctor metus rutrum, " +
 							"blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
 					),
+					false,
 				},
 				{
 					"550.txt",
@@ -377,6 +382,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"at imperdiet. Nulla dapibus purus ut lorem faucibus, at gravida tellus euismod. Curabitur " +
 							"ex risus, egestas in porta amet.",
 					),
+					false,
 				},
 			},
 			[]testAttachment{
