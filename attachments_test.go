@@ -452,13 +452,13 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 				},
 				{
 					"520.txt", strings.NewReader(
-					"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu vestibulum dolor. " +
-						"Nunc ac posuere felis, a mattis leo. Duis elementum tempor leo, sed efficitur nunc. " +
-						"Cras ornare feugiat vulputate. Maecenas sit amet felis lobortis ipsum dignissim euismod. " +
-						"Vestibulum id ullamcorper nulla, tincidunt hendrerit justo. Donec vitae eros quam. Nulla " +
-						"accumsan porta sapien, in consequat mauris fermentum ac. In at sem lobortis, auctor metus " +
-						"rutrum, blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
-				),
+						"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu vestibulum dolor. " +
+							"Nunc ac posuere felis, a mattis leo. Duis elementum tempor leo, sed efficitur nunc. " +
+							"Cras ornare feugiat vulputate. Maecenas sit amet felis lobortis ipsum dignissim euismod. " +
+							"Vestibulum id ullamcorper nulla, tincidunt hendrerit justo. Donec vitae eros quam. Nulla " +
+							"accumsan porta sapien, in consequat mauris fermentum ac. In at sem lobortis, auctor metus " +
+							"rutrum, blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
+					),
 					false,
 				},
 			},
@@ -647,13 +647,13 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 				},
 				{
 					"520.txt", strings.NewReader(
-					"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu vestibulum dolor. " +
-						"Nunc ac posuere felis, a mattis leo. Duis elementum tempor leo, sed efficitur nunc. " +
-						"Cras ornare feugiat vulputate. Maecenas sit amet felis lobortis ipsum dignissim euismod. " +
-						"Vestibulum id ullamcorper nulla, tincidunt hendrerit justo. Donec vitae eros quam. Nulla " +
-						"accumsan porta sapien, in consequat mauris fermentum ac. In at sem lobortis, auctor metus " +
-						"rutrum, blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
-				),
+						"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu vestibulum dolor. " +
+							"Nunc ac posuere felis, a mattis leo. Duis elementum tempor leo, sed efficitur nunc. " +
+							"Cras ornare feugiat vulputate. Maecenas sit amet felis lobortis ipsum dignissim euismod. " +
+							"Vestibulum id ullamcorper nulla, tincidunt hendrerit justo. Donec vitae eros quam. Nulla " +
+							"accumsan porta sapien, in consequat mauris fermentum ac. In at sem lobortis, auctor metus " +
+							"rutrum, blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
+					),
 					true,
 				},
 			},

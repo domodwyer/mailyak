@@ -25,22 +25,33 @@ type attachment struct {
 	inline   bool
 }
 
-func (m *MailYak) Attach(name string, r io.Reader) {
-	m.attach(name, r, false)
-}
-
-func (m *MailYak) AttachInline(name string, r io.Reader) {
-	m.attach(name, r, true)
-}
-
-// Attach adds an attachment to the email with the given filename.
+// Attach adds the contents of r to the email as an attachment with name as the
+// filename.
 //
-// The attachment data isn't read until Send() is called.
-func (m *MailYak) attach(name string, r io.Reader, inline bool) {
+// r is not read until Send is called.
+func (m *MailYak) Attach(name string, r io.Reader) {
 	m.attachments = append(m.attachments, attachment{
 		filename: name,
 		content:  r,
-		inline: inline,
+		inline:   false,
+	})
+}
+
+// AttachInline adds the contents of r to the email as an inline attachment.
+// Inline attachments are typically used within the email body, such as a logo
+// or header image. It is up to the user to ensure name is unique.
+//
+// Files can be referenced by their name within the email using the cid URL
+// protocol:
+//
+// 		<img src="cid:myFileName"/>
+//
+// r is not read until Send is called.
+func (m *MailYak) AttachInline(name string, r io.Reader) {
+	m.attachments = append(m.attachments, attachment{
+		filename: name,
+		content:  r,
+		inline:   true,
 	})
 }
 
@@ -105,7 +116,7 @@ func getMIMEHeader(a attachment, ctype string) textproto.MIMEHeader {
 			"Content-Type":              {ctype},
 			"Content-Disposition":       {disp},
 			"Content-Transfer-Encoding": {"base64"},
-			"Content-ID":				 {cid},
+			"Content-ID":                {cid},
 		}
 	}
 
