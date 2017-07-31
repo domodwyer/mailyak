@@ -70,7 +70,7 @@ func TestMailYakAttach(t *testing.T) {
 		},
 		{
 			"From one",
-			[]attachment{{"Existing", &bytes.Buffer{}}},
+			[]attachment{{"Existing", &bytes.Buffer{}, false}},
 			"test",
 			&bytes.Buffer{},
 			2,
@@ -83,6 +83,52 @@ func TestMailYakAttach(t *testing.T) {
 
 			m := &MailYak{attachments: tt.rattachments}
 			m.Attach(tt.pname, tt.r)
+
+			if tt.count != len(m.attachments) {
+				t.Errorf("%q. MailYak.Attach() len = %v, wantLen %v", tt.name, len(m.attachments), tt.count)
+			}
+		})
+	}
+}
+
+// TestMailYakAttach calls AttachInline() and ensures the attachment slice is the
+// correct length
+func TestMailYakAttachInline(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		// Test description.
+		name string
+		// Receiver fields.
+		rattachments []attachment
+		// Parameters.
+		pname string
+		r     io.Reader
+		// Expect
+		count int
+	}{
+		{
+			"From empty",
+			[]attachment{},
+			"test",
+			&bytes.Buffer{},
+			1,
+		},
+		{
+			"From one",
+			[]attachment{{"Existing", &bytes.Buffer{}, false}},
+			"test",
+			&bytes.Buffer{},
+			2,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			m := &MailYak{attachments: tt.rattachments}
+			m.AttachInline(tt.pname, tt.r)
 
 			if tt.count != len(m.attachments) {
 				t.Errorf("%q. MailYak.Attach() len = %v, wantLen %v", tt.name, len(m.attachments), tt.count)
@@ -109,7 +155,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 	}{
 		{
 			"Empty",
-			[]attachment{{"Empty", &bytes.Buffer{}}},
+			[]attachment{{"Empty", &bytes.Buffer{}, false}},
 			"text/plain; charset=utf-8;\n\tfilename=Empty",
 			"attachment;\n\tfilename=Empty",
 			"",
@@ -117,7 +163,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 		},
 		{
 			"Short string",
-			[]attachment{{"advice", strings.NewReader("Don't Panic")}},
+			[]attachment{{"advice", strings.NewReader("Don't Panic"), false}},
 			"text/plain; charset=utf-8;\n\tfilename=advice",
 			"attachment;\n\tfilename=advice",
 			"RG9uJ3QgUGFuaWM=",
@@ -132,6 +178,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 						"If Baldrick served a meal at HQ he would be arrested for the biggest " +
 							"mass poisoning since Lucretia Borgia invited 500 friends for a Wine and Anthrax Party.",
 					),
+					false,
 				},
 			},
 			"text/plain; charset=utf-8;\n\tfilename=partyinvite.txt",
@@ -158,6 +205,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 							`for an encore goes on to prove that black is white and gets himself killed on the next ` +
 							`zebra crossing.`,
 					),
+					false,
 				},
 			},
 			"text/plain; charset=utf-8;\n\tfilename=qed.txt",
@@ -181,7 +229,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 		},
 		{
 			"HTML",
-			[]attachment{{"name.html", strings.NewReader("<html><head></head></html>")}},
+			[]attachment{{"name.html", strings.NewReader("<html><head></head></html>"), false}},
 			"text/html; charset=utf-8;\n\tfilename=name.html",
 			"attachment;\n\tfilename=name.html",
 			"PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4=",
@@ -189,9 +237,101 @@ func TestMailYakWriteAttachments(t *testing.T) {
 		},
 		{
 			"HTML - wrong extension",
-			[]attachment{{"name.png", strings.NewReader("<html><head></head></html>")}},
+			[]attachment{{"name.png", strings.NewReader("<html><head></head></html>"), false}},
 			"text/html; charset=utf-8;\n\tfilename=name.png",
 			"attachment;\n\tfilename=name.png",
+			"PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4=",
+			false,
+		},
+
+		// inline attachments
+		{
+			"Empty inline",
+			[]attachment{{"Empty", &bytes.Buffer{}, true}},
+			"text/plain; charset=utf-8;\n\tfilename=Empty",
+			"inline;\n\tfilename=Empty",
+			"",
+			false,
+		},
+		{
+			"Short string inline",
+			[]attachment{{"advice", strings.NewReader("Don't Panic"), true}},
+			"text/plain; charset=utf-8;\n\tfilename=advice",
+			"inline;\n\tfilename=advice",
+			"RG9uJ3QgUGFuaWM=",
+			false,
+		},
+		{
+			"Longer string inline",
+			[]attachment{
+				{
+					"partyinvite.txt",
+					strings.NewReader(
+						"If Baldrick served a meal at HQ he would be arrested for the biggest " +
+							"mass poisoning since Lucretia Borgia invited 500 friends for a Wine and Anthrax Party.",
+					),
+					true,
+				},
+			},
+			"text/plain; charset=utf-8;\n\tfilename=partyinvite.txt",
+			"inline;\n\tfilename=partyinvite.txt",
+			"SWYgQmFsZHJpY2sgc2VydmVkIGEgbWVhbCBhdCBIUSBoZSB3b3VsZCBiZSBhcnJlc3Rl" +
+				"ZCBmb3IgdGhlIGJpZ2dlc3QgbWFzcyBwb2lzb25pbmcgc2luY2UgTHVjcmV0aWEgQm9y" +
+				"Z2lhIGludml0ZWQgNTAwIGZyaWVuZHMgZm9yIGEgV2luZSBhbmQgQW50aHJheCBQYXJ0eS4=",
+			false,
+		},
+		{
+			"String >512 characters (content type sniff) inline",
+			[]attachment{
+				{
+					"qed.txt",
+					strings.NewReader(
+						`Now it is such a bizarrely improbable coincidence that anything so mind-bogglingly ` +
+							`useful could have evolved purely by chance that some thinkers have chosen to see it ` +
+							`as the final and clinching proof of the non-existence of God. The argument goes something ` +
+							`like this: "I refuse to prove that I exist," says God, "for proof denies faith, and ` +
+							`without faith I am nothing." "But," says Man, "The Babel fish is a dead giveaway, ` +
+							`isn't it? It could not have evolved by chance. It proves you exist, and so therefore, ` +
+							`by your own arguments, you don't. QED." "Oh dear," says God, "I hadn't thought of ` +
+							`that," and promptly vanishes in a puff of logic. "Oh, that was easy," says Man, and ` +
+							`for an encore goes on to prove that black is white and gets himself killed on the next ` +
+							`zebra crossing.`,
+					),
+					true,
+				},
+			},
+			"text/plain; charset=utf-8;\n\tfilename=qed.txt",
+			"inline;\n\tfilename=qed.txt",
+			"Tm93IGl0IGlzIHN1Y2ggYSBiaXphcnJlbHkgaW1wcm9iYWJsZSBjb2luY2lkZW5jZSB0a" +
+				"GF0IGFueXRoaW5nIHNvIG1pbmQtYm9nZ2xpbmdseSB1c2VmdWwgY291bGQgaGF2ZSBldm" +
+				"9sdmVkIHB1cmVseSBieSBjaGFuY2UgdGhhdCBzb21lIHRoaW5rZXJzIGhhdmUgY2hvc2V" +
+				"uIHRvIHNlZSBpdCBhcyB0aGUgZmluYWwgYW5kIGNsaW5jaGluZyBwcm9vZiBvZiB0aGUg" +
+				"bm9uLWV4aXN0ZW5jZSBvZiBHb2QuIFRoZSBhcmd1bWVudCBnb2VzIHNvbWV0aGluZyBsa" +
+				"WtlIHRoaXM6ICJJIHJlZnVzZSB0byBwcm92ZSB0aGF0IEkgZXhpc3QsIiBzYXlzIEdvZC" +
+				"wgImZvciBwcm9vZiBkZW5pZXMgZmFpdGgsIGFuZCB3aXRob3V0IGZhaXRoIEkgYW0gbm9" +
+				"0aGluZy4iICJCdXQsIiBzYXlzIE1hbiwgIlRoZSBCYWJlbCBmaXNoIGlzIGEgZGVhZCBn" +
+				"aXZlYXdheSwgaXNuJ3QgaXQ/IEl0IGNvdWxkIG5vdCBoYXZlIGV2b2x2ZWQgYnkgY2hhb" +
+				"mNlLiBJdCBwcm92ZXMgeW91IGV4aXN0LCBhbmQgc28gdGhlcmVmb3JlLCBieSB5b3VyIG" +
+				"93biBhcmd1bWVudHMsIHlvdSBkb24ndC4gUUVELiIgIk9oIGRlYXIsIiBzYXlzIEdvZCw" +
+				"gIkkgaGFkbid0IHRob3VnaHQgb2YgdGhhdCwiIGFuZCBwcm9tcHRseSB2YW5pc2hlcyBp" +
+				"biBhIHB1ZmYgb2YgbG9naWMuICJPaCwgdGhhdCB3YXMgZWFzeSwiIHNheXMgTWFuLCBhb" +
+				"mQgZm9yIGFuIGVuY29yZSBnb2VzIG9uIHRvIHByb3ZlIHRoYXQgYmxhY2sgaXMgd2hpdG" +
+				"UgYW5kIGdldHMgaGltc2VsZiBraWxsZWQgb24gdGhlIG5leHQgemVicmEgY3Jvc3Npbmcu",
+			false,
+		},
+		{
+			"HTML inline",
+			[]attachment{{"name.html", strings.NewReader("<html><head></head></html>"), true}},
+			"text/html; charset=utf-8;\n\tfilename=name.html",
+			"inline;\n\tfilename=name.html",
+			"PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4=",
+			false,
+		},
+		{
+			"HTML - wrong extension inline",
+			[]attachment{{"name.png", strings.NewReader("<html><head></head></html>"), true}},
+			"text/html; charset=utf-8;\n\tfilename=name.png",
+			"inline;\n\tfilename=name.png",
 			"PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4=",
 			false,
 		},
@@ -244,7 +384,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 	}{
 		{
 			"Single Attachment",
-			[]attachment{{"name.txt", strings.NewReader("test")}},
+			[]attachment{{"name.txt", strings.NewReader("test"), false}},
 			[]testAttachment{
 				{
 					contentType: "text/plain; charset=utf-8;\n\tfilename=name.txt",
@@ -257,8 +397,8 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 		{
 			"Multiple Attachment - same types",
 			[]attachment{
-				{"name.txt", strings.NewReader("test")},
-				{"different.txt", strings.NewReader("another")},
+				{"name.txt", strings.NewReader("test"), false},
+				{"different.txt", strings.NewReader("another"), false},
 			},
 			[]testAttachment{
 				{
@@ -277,8 +417,8 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 		{
 			"Multiple Attachment - different types",
 			[]attachment{
-				{"name.txt", strings.NewReader("test")},
-				{"html.txt", strings.NewReader("<html><head></head></html>")},
+				{"name.txt", strings.NewReader("test"), false},
+				{"html.txt", strings.NewReader("<html><head></head></html>"), false},
 			},
 			[]testAttachment{
 				{
@@ -308,16 +448,18 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"Proin luctus nec nisl at imperdiet. Nulla dapibus purus ut lorem faucibus, at gravida " +
 							"tellus euismod. Curabitur ex risus, egestas in porta amet.",
 					),
+					false,
 				},
 				{
 					"520.txt", strings.NewReader(
-						"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu vestibulum dolor. " +
-							"Nunc ac posuere felis, a mattis leo. Duis elementum tempor leo, sed efficitur nunc. " +
-							"Cras ornare feugiat vulputate. Maecenas sit amet felis lobortis ipsum dignissim euismod. " +
-							"Vestibulum id ullamcorper nulla, tincidunt hendrerit justo. Donec vitae eros quam. Nulla " +
-							"accumsan porta sapien, in consequat mauris fermentum ac. In at sem lobortis, auctor metus " +
-							"rutrum, blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
-					),
+					"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu vestibulum dolor. " +
+						"Nunc ac posuere felis, a mattis leo. Duis elementum tempor leo, sed efficitur nunc. " +
+						"Cras ornare feugiat vulputate. Maecenas sit amet felis lobortis ipsum dignissim euismod. " +
+						"Vestibulum id ullamcorper nulla, tincidunt hendrerit justo. Donec vitae eros quam. Nulla " +
+						"accumsan porta sapien, in consequat mauris fermentum ac. In at sem lobortis, auctor metus " +
+						"rutrum, blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
+				),
+					false,
 				},
 			},
 			[]testAttachment{
@@ -365,6 +507,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"porta sapien, in consequat mauris fermentum ac. In at sem lobortis, auctor metus rutrum, " +
 							"blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
 					),
+					false,
 				},
 				{
 					"550.txt",
@@ -377,6 +520,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"at imperdiet. Nulla dapibus purus ut lorem faucibus, at gravida tellus euismod. Curabitur " +
 							"ex risus, egestas in porta amet.",
 					),
+					false,
 				},
 			},
 			[]testAttachment{
@@ -397,6 +541,201 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 				{
 					contentType: "text/plain; charset=utf-8;\n\tfilename=550.txt",
 					disposition: "attachment;\n\tfilename=550.txt",
+					data: *bytes.NewBufferString(
+						"TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4gTWF1cmlzIHV0IG5p" +
+							"c2wgZmVsaXMuIEFlbmVhbiBmZWxpcyBqdXN0bywgZ3JhdmlkYSBlZ2V0IGxlbyBhbGlxdWV0LCBtb2xlc3RpZSBhbGlx" +
+							"dWFtIHJpc3VzLiBWZXN0aWJ1bHVtIGV0IG5pYmggcmhvbmN1cywgbWFsZXN1YWRhIHRlbGx1cyBlZ2V0LCBwZWxsZW50" +
+							"ZXNxdWUgZGlhbS4gU2VkIHZlbmVuYXRpcyB2aXRhZSBlcmF0IHZlbCB1bGxhbWNvcnBlci4gQWVuZWFuIHJ1dHJ1bSBw" +
+							"dWx2aW5hciBwdXJ1cyBlZ2V0IGN1cnN1cy4gSW50ZWdlciBhdCBpYWN1bGlzIGFyY3UuIE1hZWNlbmFzIG1vbGxpcyBu" +
+							"dWxsYSBkb2xvciwgZXQgdWx0cmljaWVzIG1hc3NhIHBvc3VlcmUgcXVpcy4gTnVsbGEgZmFjaWxpc2kuIFByb2luIGx1" +
+							"Y3R1cyBuZWMgbmlzbCBhdCBpbXBlcmRpZXQuIE51bGxhIGRhcGlidXMgcHVydXMgdXQgbG9yZW0gZmF1Y2lidXMsIGF0" +
+							"IGdyYXZpZGEgdGVsbHVzIGV1aXNtb2QuIEN1cmFiaXR1ciBleCByaXN1cywgZWdlc3RhcyBpbiBwb3J0YSBhbWV0Lg==",
+					),
+				},
+			},
+			false,
+		},
+
+		// inline attachments
+		{
+			"Single Inline Attachment",
+			[]attachment{{"name.txt", strings.NewReader("test"), true}},
+			[]testAttachment{
+				{
+					contentType: "text/plain; charset=utf-8;\n\tfilename=name.txt",
+					disposition: "inline;\n\tfilename=name.txt",
+					data:        *bytes.NewBufferString("dGVzdA=="),
+				},
+			},
+			false,
+		},
+		{
+			"Multiple Inline Attachments - same types",
+			[]attachment{
+				{"name.txt", strings.NewReader("test"), true},
+				{"different.txt", strings.NewReader("another"), true},
+			},
+			[]testAttachment{
+				{
+					contentType: "text/plain; charset=utf-8;\n\tfilename=name.txt",
+					disposition: "inline;\n\tfilename=name.txt",
+					data:        *bytes.NewBufferString("dGVzdA=="),
+				},
+				{
+					contentType: "text/plain; charset=utf-8;\n\tfilename=different.txt",
+					disposition: "inline;\n\tfilename=different.txt",
+					data:        *bytes.NewBufferString("YW5vdGhlcg=="),
+				},
+			},
+			false,
+		},
+		{
+			"Multiple Attachments - One Inline, One not",
+			[]attachment{
+				{"name.txt", strings.NewReader("test"), false},
+				{"different.txt", strings.NewReader("another"), true},
+			},
+			[]testAttachment{
+				{
+					contentType: "text/plain; charset=utf-8;\n\tfilename=name.txt",
+					disposition: "attachment;\n\tfilename=name.txt",
+					data:        *bytes.NewBufferString("dGVzdA=="),
+				},
+				{
+					contentType: "text/plain; charset=utf-8;\n\tfilename=different.txt",
+					disposition: "inline;\n\tfilename=different.txt",
+					data:        *bytes.NewBufferString("YW5vdGhlcg=="),
+				},
+			},
+			false,
+		},
+		{
+			"Multiple Inline Attachments - different types",
+			[]attachment{
+				{"name.txt", strings.NewReader("test"), true},
+				{"html.txt", strings.NewReader("<html><head></head></html>"), true},
+			},
+			[]testAttachment{
+				{
+					contentType: "text/plain; charset=utf-8;\n\tfilename=name.txt",
+					disposition: "inline;\n\tfilename=name.txt",
+					data:        *bytes.NewBufferString("dGVzdA=="),
+				},
+				{
+					contentType: "text/html; charset=utf-8;\n\tfilename=html.txt",
+					disposition: "inline;\n\tfilename=html.txt",
+					data:        *bytes.NewBufferString("PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4="),
+				},
+			},
+			false,
+		},
+		{
+			"Multiple Inline Attachments - >512 bytes, longer first",
+			[]attachment{
+				{
+					"550.txt",
+					strings.NewReader(
+						"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ut nisl felis. " +
+							"Aenean felis justo, gravida eget leo aliquet, molestie aliquam risus. Vestibulum " +
+							"et nibh rhoncus, malesuada tellus eget, pellentesque diam. Sed venenatis vitae " +
+							"erat vel ullamcorper. Aenean rutrum pulvinar purus eget cursus. Integer at iaculis " +
+							"arcu. Maecenas mollis nulla dolor, et ultricies massa posuere quis. Nulla facilisi. " +
+							"Proin luctus nec nisl at imperdiet. Nulla dapibus purus ut lorem faucibus, at gravida " +
+							"tellus euismod. Curabitur ex risus, egestas in porta amet.",
+					),
+					true,
+				},
+				{
+					"520.txt", strings.NewReader(
+					"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu vestibulum dolor. " +
+						"Nunc ac posuere felis, a mattis leo. Duis elementum tempor leo, sed efficitur nunc. " +
+						"Cras ornare feugiat vulputate. Maecenas sit amet felis lobortis ipsum dignissim euismod. " +
+						"Vestibulum id ullamcorper nulla, tincidunt hendrerit justo. Donec vitae eros quam. Nulla " +
+						"accumsan porta sapien, in consequat mauris fermentum ac. In at sem lobortis, auctor metus " +
+						"rutrum, blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
+				),
+					true,
+				},
+			},
+			[]testAttachment{
+				{
+					contentType: "text/plain; charset=utf-8;\n\tfilename=550.txt",
+					disposition: "inline;\n\tfilename=550.txt",
+					data: *bytes.NewBufferString(
+						"TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4gTWF1cmlzIHV0IG5pc" +
+							"2wgZmVsaXMuIEFlbmVhbiBmZWxpcyBqdXN0bywgZ3JhdmlkYSBlZ2V0IGxlbyBhbGlxdWV0LCBtb2xlc3RpZSBhbGlxdW" +
+							"FtIHJpc3VzLiBWZXN0aWJ1bHVtIGV0IG5pYmggcmhvbmN1cywgbWFsZXN1YWRhIHRlbGx1cyBlZ2V0LCBwZWxsZW50ZXN" +
+							"xdWUgZGlhbS4gU2VkIHZlbmVuYXRpcyB2aXRhZSBlcmF0IHZlbCB1bGxhbWNvcnBlci4gQWVuZWFuIHJ1dHJ1bSBwdWx2" +
+							"aW5hciBwdXJ1cyBlZ2V0IGN1cnN1cy4gSW50ZWdlciBhdCBpYWN1bGlzIGFyY3UuIE1hZWNlbmFzIG1vbGxpcyBudWxsY" +
+							"SBkb2xvciwgZXQgdWx0cmljaWVzIG1hc3NhIHBvc3VlcmUgcXVpcy4gTnVsbGEgZmFjaWxpc2kuIFByb2luIGx1Y3R1cy" +
+							"BuZWMgbmlzbCBhdCBpbXBlcmRpZXQuIE51bGxhIGRhcGlidXMgcHVydXMgdXQgbG9yZW0gZmF1Y2lidXMsIGF0IGdyYXZ" +
+							"pZGEgdGVsbHVzIGV1aXNtb2QuIEN1cmFiaXR1ciBleCByaXN1cywgZWdlc3RhcyBpbiBwb3J0YSBhbWV0Lg==",
+					),
+				},
+				{
+					contentType: "text/plain; charset=utf-8;\n\tfilename=520.txt",
+					disposition: "inline;\n\tfilename=520.txt",
+					data: *bytes.NewBufferString(
+						"TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4gRG9uZWMgZXUgdmVz" +
+							"dGlidWx1bSBkb2xvci4gTnVuYyBhYyBwb3N1ZXJlIGZlbGlzLCBhIG1hdHRpcyBsZW8uIER1aXMgZWxlbWVudHVtIHRl" +
+							"bXBvciBsZW8sIHNlZCBlZmZpY2l0dXIgbnVuYy4gQ3JhcyBvcm5hcmUgZmV1Z2lhdCB2dWxwdXRhdGUuIE1hZWNlbmFz" +
+							"IHNpdCBhbWV0IGZlbGlzIGxvYm9ydGlzIGlwc3VtIGRpZ25pc3NpbSBldWlzbW9kLiBWZXN0aWJ1bHVtIGlkIHVsbGFt" +
+							"Y29ycGVyIG51bGxhLCB0aW5jaWR1bnQgaGVuZHJlcml0IGp1c3RvLiBEb25lYyB2aXRhZSBlcm9zIHF1YW0uIE51bGxh" +
+							"IGFjY3Vtc2FuIHBvcnRhIHNhcGllbiwgaW4gY29uc2VxdWF0IG1hdXJpcyBmZXJtZW50dW0gYWMuIEluIGF0IHNlbSBs" +
+							"b2JvcnRpcywgYXVjdG9yIG1ldHVzIHJ1dHJ1bSwgYmxhbmRpdCBpcHN1bS4gUHJhZXNlbnQgY29tbW9kbyBwb3J0YSBz" +
+							"ZW1wZXIuIEV0aWFtIGRpZ25pc3NpbSBsaWJlcm8gbnVsbGFtLg==",
+					),
+				},
+			},
+			false,
+		},
+		{
+			"Multiple Inline Attachments - >512 bytes, shorter first",
+			[]attachment{
+				{
+					"520.txt",
+					strings.NewReader(
+						"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu vestibulum dolor. Nunc ac " +
+							"posuere felis, a mattis leo. Duis elementum tempor leo, sed efficitur nunc. Cras ornare " +
+							"feugiat vulputate. Maecenas sit amet felis lobortis ipsum dignissim euismod. Vestibulum " +
+							"id ullamcorper nulla, tincidunt hendrerit justo. Donec vitae eros quam. Nulla accumsan " +
+							"porta sapien, in consequat mauris fermentum ac. In at sem lobortis, auctor metus rutrum, " +
+							"blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
+					),
+					true,
+				},
+				{
+					"550.txt",
+					strings.NewReader(
+						"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ut nisl felis. Aenean felis " +
+							"justo, gravida eget leo aliquet, molestie aliquam risus. Vestibulum et nibh rhoncus, " +
+							"malesuada tellus eget, pellentesque diam. Sed venenatis vitae erat vel ullamcorper. " +
+							"Aenean rutrum pulvinar purus eget cursus. Integer at iaculis arcu. Maecenas mollis " +
+							"nulla dolor, et ultricies massa posuere quis. Nulla facilisi. Proin luctus nec nisl " +
+							"at imperdiet. Nulla dapibus purus ut lorem faucibus, at gravida tellus euismod. Curabitur " +
+							"ex risus, egestas in porta amet.",
+					),
+					true,
+				},
+			},
+			[]testAttachment{
+				{
+					contentType: "text/plain; charset=utf-8;\n\tfilename=520.txt",
+					disposition: "inline;\n\tfilename=520.txt",
+					data: *bytes.NewBufferString(
+						"TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4gRG9uZWMgZXUgdmVz" +
+							"dGlidWx1bSBkb2xvci4gTnVuYyBhYyBwb3N1ZXJlIGZlbGlzLCBhIG1hdHRpcyBsZW8uIER1aXMgZWxlbWVudHVtIHRl" +
+							"bXBvciBsZW8sIHNlZCBlZmZpY2l0dXIgbnVuYy4gQ3JhcyBvcm5hcmUgZmV1Z2lhdCB2dWxwdXRhdGUuIE1hZWNlbmFz" +
+							"IHNpdCBhbWV0IGZlbGlzIGxvYm9ydGlzIGlwc3VtIGRpZ25pc3NpbSBldWlzbW9kLiBWZXN0aWJ1bHVtIGlkIHVsbGFt" +
+							"Y29ycGVyIG51bGxhLCB0aW5jaWR1bnQgaGVuZHJlcml0IGp1c3RvLiBEb25lYyB2aXRhZSBlcm9zIHF1YW0uIE51bGxh" +
+							"IGFjY3Vtc2FuIHBvcnRhIHNhcGllbiwgaW4gY29uc2VxdWF0IG1hdXJpcyBmZXJtZW50dW0gYWMuIEluIGF0IHNlbSBs" +
+							"b2JvcnRpcywgYXVjdG9yIG1ldHVzIHJ1dHJ1bSwgYmxhbmRpdCBpcHN1bS4gUHJhZXNlbnQgY29tbW9kbyBwb3J0YSBz" +
+							"ZW1wZXIuIEV0aWFtIGRpZ25pc3NpbSBsaWJlcm8gbnVsbGFtLg==",
+					),
+				},
+				{
+					contentType: "text/plain; charset=utf-8;\n\tfilename=550.txt",
+					disposition: "inline;\n\tfilename=550.txt",
 					data: *bytes.NewBufferString(
 						"TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4gTWF1cmlzIHV0IG5p" +
 							"c2wgZmVsaXMuIEFlbmVhbiBmZWxpcyBqdXN0bywgZ3JhdmlkYSBlZ2V0IGxlbyBhbGlxdWV0LCBtb2xlc3RpZSBhbGlx" +
