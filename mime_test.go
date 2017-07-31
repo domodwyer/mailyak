@@ -454,6 +454,21 @@ func TestMailYakBuildMime_withAttachments(t *testing.T) {
 			false,
 		},
 		{
+			"One inline attachment",
+			[]byte{},
+			[]byte{},
+			[]string{""},
+			"",
+			"",
+			"",
+			"",
+			[]attachment{
+				{"test.txt", strings.NewReader("content"), true},
+			},
+			[]string{"Y29udGVudA=="},
+			false,
+		},
+		{
 			"Two attachments",
 			[]byte{},
 			[]byte{},
@@ -465,6 +480,22 @@ func TestMailYakBuildMime_withAttachments(t *testing.T) {
 			[]attachment{
 				{"test.txt", strings.NewReader("content"), false},
 				{"another.txt", strings.NewReader("another"), false},
+			},
+			[]string{"Y29udGVudA==", "YW5vdGhlcg=="},
+			false,
+		},
+		{
+			"Two inline attachments",
+			[]byte{},
+			[]byte{},
+			[]string{""},
+			"",
+			"",
+			"",
+			"",
+			[]attachment{
+				{"test.txt", strings.NewReader("content"), true},
+				{"another.txt", strings.NewReader("another"), true},
 			},
 			[]string{"Y29udGVudA==", "YW5vdGhlcg=="},
 			false,
@@ -522,7 +553,13 @@ func TestMailYakBuildMime_withAttachments(t *testing.T) {
 				// Run through our attachments looking for a match
 				for i, attch := range tt.rattachments {
 					// Check Disposition header
-					if p.Header.Get("Content-Disposition") != fmt.Sprintf("attachment; filename=%s", attch.filename) {
+					var disp string
+					if attch.inline {
+						disp = "inline; filename=%s"
+					} else {
+						disp = "attachment; filename=%s"
+					}
+					if p.Header.Get("Content-Disposition") != fmt.Sprintf(disp, attch.filename) {
 						continue
 					}
 
