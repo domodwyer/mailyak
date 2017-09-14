@@ -69,11 +69,12 @@ func TestMailYakWriteHeaders(t *testing.T) {
 		// Test description.
 		name string
 		// Receiver fields.
-		rtoAddrs  []string
-		rccAddrs  []string
-		rbccAddrs []string
-		rsubject  string
-		rreplyTo  string
+		rtoAddrs        []string
+		rccAddrs        []string
+		rbccAddrs       []string
+		rsubject        string
+		rreplyTo        string
+		rwriteBccHeader bool
 		// Expected results.
 		wantBuf string
 	}{
@@ -84,6 +85,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			[]string{},
 			"Test",
 			"help@itsallbroken.com",
+			true,
 			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nReply-To: help@itsallbroken.com\r\nSubject: Test\r\nTo: test@itsallbroken.com\r\n",
 		},
 		{
@@ -93,6 +95,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			[]string{},
 			"",
 			"",
+			true,
 			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\n",
 		},
 		{
@@ -102,6 +105,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			[]string{},
 			"",
 			"",
+			true,
 			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\n",
 		},
 		{
@@ -111,6 +115,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			[]string{},
 			"",
 			"",
+			true,
 			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc@itsallbroken.com\r\n",
 		},
 		{
@@ -120,9 +125,9 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			[]string{},
 			"",
 			"",
+			true,
 			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc1@itsallbroken.com\r\nCC: cc2@itsallbroken.com\r\n",
 		},
-
 		{
 			"Single Bcc address, Multiple To addresses",
 			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
@@ -130,6 +135,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			[]string{"bcc@itsallbroken.com"},
 			"",
 			"",
+			true,
 			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nBCC: bcc@itsallbroken.com\r\n",
 		},
 		{
@@ -139,7 +145,18 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			[]string{"bcc1@itsallbroken.com", "bcc2@itsallbroken.com"},
 			"",
 			"",
+			true,
 			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nBCC: bcc1@itsallbroken.com\r\nBCC: bcc2@itsallbroken.com\r\n",
+		},
+		{
+			"Multiple Bcc addresses, Multiple To addresses",
+			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
+			[]string{},
+			[]string{"bcc1@itsallbroken.com", "bcc2@itsallbroken.com"},
+			"",
+			"",
+			false,
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\n",
 		},
 		{
 			"All together now",
@@ -148,6 +165,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			[]string{"bcc1@itsallbroken.com", "bcc2@itsallbroken.com"},
 			"",
 			"",
+			true,
 			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc1@itsallbroken.com\r\nCC: cc2@itsallbroken.com\r\nBCC: bcc1@itsallbroken.com\r\nBCC: bcc2@itsallbroken.com\r\n",
 		},
 	}
@@ -157,13 +175,14 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			t.Parallel()
 
 			m := MailYak{
-				toAddrs:  tt.rtoAddrs,
-				subject:  tt.rsubject,
-				fromAddr: "dom@itsallbroken.com",
-				fromName: "Dom",
-				replyTo:  tt.rreplyTo,
-				ccAddrs:  tt.rccAddrs,
-				bccAddrs: tt.rbccAddrs,
+				toAddrs:        tt.rtoAddrs,
+				subject:        tt.rsubject,
+				fromAddr:       "dom@itsallbroken.com",
+				fromName:       "Dom",
+				replyTo:        tt.rreplyTo,
+				ccAddrs:        tt.rccAddrs,
+				bccAddrs:       tt.rbccAddrs,
+				writeBccHeader: tt.rwriteBccHeader,
 			}
 
 			buf := &bytes.Buffer{}

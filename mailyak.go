@@ -15,17 +15,18 @@ type MailYak struct {
 	html  BodyPart
 	plain BodyPart
 
-	toAddrs     []string
-	ccAddrs     []string
-	bccAddrs    []string
-	subject     string
-	fromAddr    string
-	fromName    string
-	replyTo     string
-	attachments []attachment
-	auth        smtp.Auth
-	trimRegex   *regexp.Regexp
-	host        string
+	toAddrs        []string
+	ccAddrs        []string
+	bccAddrs       []string
+	subject        string
+	fromAddr       string
+	fromName       string
+	replyTo        string
+	attachments    []attachment
+	auth           smtp.Auth
+	trimRegex      *regexp.Regexp
+	host           string
+	writeBccHeader bool
 }
 
 // New returns an instance of MailYak using host as the SMTP server, and
@@ -42,9 +43,10 @@ type MailYak struct {
 //
 func New(host string, auth smtp.Auth) *MailYak {
 	return &MailYak{
-		host:      host,
-		auth:      auth,
-		trimRegex: regexp.MustCompile("\r?\n"),
+		host:           host,
+		auth:           auth,
+		trimRegex:      regexp.MustCompile("\r?\n"),
+		writeBccHeader: true,
 	}
 }
 

@@ -54,6 +54,16 @@ func (m *MailYak) Bcc(addrs ...string) {
 	}
 }
 
+// WriteBccHeader is an opt-in option to write Bcc headers
+//
+// If set to true Bcc addresses are visible in the header.
+// Otherwise, headers are hidden. Default is true.
+//
+// 	mail.WriteBccHeader(true)
+func (m *MailYak) WriteBccHeader(shouldWrite bool) {
+	m.writeBccHeader = shouldWrite
+}
+
 // Cc sets a list of carbon copy (CC) addresses.
 //
 // You can pass one or more addresses to this method, which are viewable to the other recipients.
