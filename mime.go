@@ -98,8 +98,10 @@ func (m *MailYak) writeHeaders(buf io.Writer) error {
 		fmt.Fprintf(buf, "CC: %s\r\n", cc)
 	}
 
-	for _, bcc := range m.bccAddrs {
-		fmt.Fprintf(buf, "BCC: %s\r\n", bcc)
+	if m.writeBccHeader {
+		for _, bcc := range m.bccAddrs {
+			fmt.Fprintf(buf, "BCC: %s\r\n", bcc)
+		}
 	}
 
 	return nil

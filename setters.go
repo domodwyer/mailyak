@@ -54,6 +54,27 @@ func (m *MailYak) Bcc(addrs ...string) {
 	}
 }
 
+// WriteBccHeader writes the BCC header to the MIME body when true. Defaults to
+// false.
+//
+// This is usually required when writing the MIME body to an email API such as
+// Amazon's SES, but can cause problems when sending emails via a SMTP server.
+//
+// Specifically, RFC822 says:
+//
+// 		Some  systems  may choose to include the text of the "Bcc" field only in the
+// 		author(s)'s  copy,  while  others  may also include it in the text sent to
+// 		all those indicated in the "Bcc" list.
+//
+// This ambiguity can result in some SMTP servers not stripping the BCC header
+// and exposing the BCC addressees to recipients. For more information, see:
+//
+// 		https://github.com/domodwyer/mailyak/issues/14
+//
+func (m *MailYak) WriteBccHeader(shouldWrite bool) {
+	m.writeBccHeader = shouldWrite
+}
+
 // Cc sets a list of carbon copy (CC) addresses.
 //
 // You can pass one or more addresses to this method, which are viewable to the other recipients.
