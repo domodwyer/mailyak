@@ -54,12 +54,23 @@ func (m *MailYak) Bcc(addrs ...string) {
 	}
 }
 
-// WriteBccHeader is an opt-in option to write Bcc headers
+// WriteBccHeader writes the BCC header to the MIME body when true. Defaults to
+// false.
 //
-// If set to true Bcc addresses are visible in the header.
-// Otherwise, headers are hidden. Default is true.
+// This is usually required when writing the MIME body to an email API such as
+// Amazon's SES, but can cause problems when sending emails via a SMTP server.
 //
-// 	mail.WriteBccHeader(true)
+// Specifically, RFC822 says:
+//
+// 		Some  systems  may choose to include the text of the "Bcc" field only in the
+// 		author(s)'s  copy,  while  others  may also include it in the text sent to
+// 		all those indicated in the "Bcc" list.
+//
+// This ambiguity can result in some SMTP servers not stripping the BCC header
+// and exposing the BCC addressees to recipients. For more information, see:
+//
+// 		https://github.com/domodwyer/mailyak/issues/14
+//
 func (m *MailYak) WriteBccHeader(shouldWrite bool) {
 	m.writeBccHeader = shouldWrite
 }
