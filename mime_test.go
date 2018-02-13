@@ -574,9 +574,9 @@ func TestMailYakBuildMime_withAttachments(t *testing.T) {
 					// Check Disposition header
 					var disp string
 					if attch.inline {
-						disp = "inline; filename=%s"
+						disp = "inline; filename=%q"
 					} else {
-						disp = "attachment; filename=%s"
+						disp = "attachment; filename=%q"
 					}
 					if p.Header.Get("Content-Disposition") != fmt.Sprintf(disp, attch.filename) {
 						continue
