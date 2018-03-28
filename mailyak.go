@@ -48,6 +48,7 @@ func New(host string, auth smtp.Auth) *MailYak {
 		auth:           auth,
 		trimRegex:      regexp.MustCompile("\r?\n"),
 		writeBccHeader: false,
+		date:           currentDateTime,
 	}
 }
 
