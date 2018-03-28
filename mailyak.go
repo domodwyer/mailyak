@@ -27,6 +27,7 @@ type MailYak struct {
 	trimRegex      *regexp.Regexp
 	host           string
 	writeBccHeader bool
+	date           string
 }
 
 // New returns an instance of MailYak using host as the SMTP server, and
@@ -91,8 +92,9 @@ func (m *MailYak) String() string {
 		att = append(att, "{filename: "+a.filename+"}")
 	}
 	return fmt.Sprintf(
-		"&MailYak{from: %q, fromName: %q, html: %v bytes, plain: %v bytes, toAddrs: %v, "+
+		"&MailYak{date: %q, from: %q, fromName: %q, html: %v bytes, plain: %v bytes, toAddrs: %v, "+
 			"bccAddrs: %v, subject: %q, host: %q, attachments (%v): %v, auth set: %v}",
+		m.date,
 		m.fromAddr,
 		m.fromName,
 		len(m.HTML().String()),
