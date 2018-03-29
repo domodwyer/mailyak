@@ -7,7 +7,11 @@ import (
 	"io"
 	"mime/multipart"
 	"net/textproto"
+	"time"
 )
+// Sets global variable to current date and time in RFC1123Z format.
+// Used to set the Date MIME header.
+var currentDateTime = time.Now().Format(time.RFC1123Z)
 
 func (m *MailYak) buildMime() (*bytes.Buffer, error) {
 	mb, err := randomBoundary()
@@ -73,7 +77,7 @@ func (m *MailYak) buildMimeWithBoundaries(mb, ab string) (*bytes.Buffer, error) 
 	return &buf, nil
 }
 
-// writeHeaders writes the Mime-Version, Reply-To, From, To and Subject headers.
+// writeHeaders writes the Mime-Version, Date, Reply-To, From, To and Subject headers.
 func (m *MailYak) writeHeaders(buf io.Writer) error {
 
 	if _, err := buf.Write([]byte(m.fromHeader())); err != nil {
@@ -83,6 +87,8 @@ func (m *MailYak) writeHeaders(buf io.Writer) error {
 	if _, err := buf.Write([]byte("Mime-Version: 1.0\r\n")); err != nil {
 		return err
 	}
+
+	fmt.Fprintf(buf, "Date: %s\r\n", currentDateTime)
 
 	if m.replyTo != "" {
 		fmt.Fprintf(buf, "Reply-To: %s\r\n", m.replyTo)

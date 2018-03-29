@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/smtp"
 	"regexp"
+	"time"
 )
 
 // TODO: in the future, when aliasing is supported or we're making a breaking
@@ -27,6 +28,7 @@ type MailYak struct {
 	trimRegex      *regexp.Regexp
 	host           string
 	writeBccHeader bool
+	date           string
 }
 
 // New returns an instance of MailYak using host as the SMTP server, and
@@ -47,6 +49,7 @@ func New(host string, auth smtp.Auth) *MailYak {
 		auth:           auth,
 		trimRegex:      regexp.MustCompile("\r?\n"),
 		writeBccHeader: false,
+		date:           time.Now().Format(time.RFC1123Z),
 	}
 }
 
@@ -91,8 +94,9 @@ func (m *MailYak) String() string {
 		att = append(att, "{filename: "+a.filename+"}")
 	}
 	return fmt.Sprintf(
-		"&MailYak{from: %q, fromName: %q, html: %v bytes, plain: %v bytes, toAddrs: %v, "+
+		"&MailYak{date: %q, from: %q, fromName: %q, html: %v bytes, plain: %v bytes, toAddrs: %v, "+
 			"bccAddrs: %v, subject: %q, host: %q, attachments (%v): %v, auth set: %v}",
+		m.date,
 		m.fromAddr,
 		m.fromName,
 		len(m.HTML().String()),

@@ -23,7 +23,7 @@ func TestMailYakStringer(t *testing.T) {
 	mail.Attach("test.html", strings.NewReader("<html><head></head></html>"))
 	mail.Attach("test2.html", strings.NewReader("<html><head></head></html>"))
 
-	want := "&MailYak{from: \"from@example.org\", fromName: \"From Example\", html: 31 bytes, plain: 42 bytes, toAddrs: [to@example.org], bccAddrs: [bcc1@example.org bcc2@example.org], subject: \"Test subject\", host: \"mail.host.com:25\", attachments (2): [{filename: test.html} {filename: test2.html}], auth set: true}"
+	want := "&MailYak{date: \"" + currentDateTime + "\", from: \"from@example.org\", fromName: \"From Example\", html: 31 bytes, plain: 42 bytes, toAddrs: [to@example.org], bccAddrs: [bcc1@example.org bcc2@example.org], subject: \"Test subject\", host: \"mail.host.com:25\", attachments (2): [{filename: test.html} {filename: test2.html}], auth set: true}"
 	got := fmt.Sprintf("%+v", mail)
 	if got != want {
 		t.Errorf("MailYak.String() = %v, want %v", got, want)
