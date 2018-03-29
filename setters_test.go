@@ -105,3 +105,80 @@ func TestMailYakBcc(t *testing.T) {
 		})
 	}
 }
+func TestMailYakSubject(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		// Test description.
+		name string
+		// Parameters.
+		subject string
+		// Want
+		want string
+	}{
+		{
+			"ASCII",
+			"Banana\r\n",
+			"Banana",
+		},
+		{
+			"Q-encoded",
+			"🍌\r\n",
+			"=?UTF-8?q?=F0=9F=8D=8C?=",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			m := &MailYak{
+				trimRegex: regexp.MustCompile("\r?\n"),
+			}
+			m.Subject(tt.subject)
+
+			if !reflect.DeepEqual(m.subject, tt.want) {
+				t.Errorf("%q. MailYak.Subject() = %v, want %v", tt.name, m.subject, tt.want)
+			}
+		})
+	}
+}
+
+func TestMailYakFromName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		// Test description.
+		name string
+		// Parameters.
+		from string
+		// Want
+		want string
+	}{
+		{
+			"ASCII",
+			"Goat\r\n",
+			"Goat",
+		},
+		{
+			"Q-encoded",
+			"🐐",
+			"=?UTF-8?q?=F0=9F=90=90?=",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			m := &MailYak{
+				trimRegex: regexp.MustCompile("\r?\n"),
+			}
+			m.FromName(tt.from)
+
+			if !reflect.DeepEqual(m.fromName, tt.want) {
+				t.Errorf("%q. MailYak.Subject() = %v, want %v", tt.name, m.fromName, tt.want)
+			}
+		})
+	}
+}

@@ -1,5 +1,7 @@
 package mailyak
 
+import "mime"
+
 // To sets a list of recipient addresses.
 //
 // You can pass one or more addresses to this method, all of which are viewable to the recipients.
@@ -115,8 +117,9 @@ func (m *MailYak) From(addr string) {
 //
 // 		From Name <sender@example.com>
 //
+// If name contains non-ASCII characters, it is Q-encoded according to RFC1342.
 func (m *MailYak) FromName(name string) {
-	m.fromName = m.trimRegex.ReplaceAllString(name, "")
+	m.fromName = mime.QEncoding.Encode("UTF-8", m.trimRegex.ReplaceAllString(name, ""))
 }
 
 // ReplyTo sets the Reply-To email address.
@@ -127,6 +130,8 @@ func (m *MailYak) ReplyTo(addr string) {
 }
 
 // Subject sets the email subject line.
+//
+// If sub contains non-ASCII characters, it is Q-encoded according to RFC1342.
 func (m *MailYak) Subject(sub string) {
-	m.subject = m.trimRegex.ReplaceAllString(sub, "")
+	m.subject = mime.QEncoding.Encode("UTF-8", m.trimRegex.ReplaceAllString(sub, ""))
 }
