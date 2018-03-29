@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 )
 
 // TestMailYakFromHeader ensures the fromHeader method returns valid headers
@@ -65,6 +66,7 @@ func TestMailYakFromHeader(t *testing.T) {
 func TestMailYakWriteHeaders(t *testing.T) {
 	t.Parallel()
 
+	now := time.Now().Format(time.RFC1123Z)
 	tests := []struct {
 		// Test description.
 		name string
@@ -72,7 +74,6 @@ func TestMailYakWriteHeaders(t *testing.T) {
 		rtoAddrs        []string
 		rccAddrs        []string
 		rbccAddrs       []string
-		rDate           string
 		rsubject        string
 		rreplyTo        string
 		rwriteBccHeader bool
@@ -84,99 +85,90 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			[]string{"test@itsallbroken.com"},
 			[]string{},
 			[]string{},
-			currentDateTime,
 			"Test",
 			"help@itsallbroken.com",
 			true,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nReply-To: help@itsallbroken.com\r\nSubject: Test\r\nTo: test@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nReply-To: help@itsallbroken.com\r\nSubject: Test\r\nTo: test@itsallbroken.com\r\n",
 		},
 		{
 			"No reply-to",
 			[]string{"test@itsallbroken.com"},
 			[]string{},
 			[]string{},
-			currentDateTime,
 			"",
 			"",
 			true,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\n",
 		},
 		{
 			"Multiple To addresses",
 			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
 			[]string{},
 			[]string{},
-			currentDateTime,
 			"",
 			"",
 			true,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\n",
 		},
 		{
 			"Single Cc address, Multiple To addresses",
 			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
 			[]string{"cc@itsallbroken.com"},
 			[]string{},
-			currentDateTime,
 			"",
 			"",
 			true,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc@itsallbroken.com\r\n",
 		},
 		{
 			"Multiple Cc addresses, Multiple To addresses",
 			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
 			[]string{"cc1@itsallbroken.com", "cc2@itsallbroken.com"},
 			[]string{},
-			currentDateTime,
 			"",
 			"",
 			true,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc1@itsallbroken.com\r\nCC: cc2@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc1@itsallbroken.com\r\nCC: cc2@itsallbroken.com\r\n",
 		},
 		{
 			"Single Bcc address, Multiple To addresses",
 			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
 			[]string{},
 			[]string{"bcc@itsallbroken.com"},
-			currentDateTime,
 			"",
 			"",
 			true,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nBCC: bcc@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nBCC: bcc@itsallbroken.com\r\n",
 		},
 		{
 			"Multiple Bcc addresses, Multiple To addresses",
 			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
 			[]string{},
 			[]string{"bcc1@itsallbroken.com", "bcc2@itsallbroken.com"},
-			currentDateTime,
 			"",
 			"",
 			true,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nBCC: bcc1@itsallbroken.com\r\nBCC: bcc2@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nBCC: bcc1@itsallbroken.com\r\nBCC: bcc2@itsallbroken.com\r\n",
 		},
 		{
 			"Multiple Bcc addresses, Multiple To addresses",
 			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
 			[]string{},
 			[]string{"bcc1@itsallbroken.com", "bcc2@itsallbroken.com"},
-			currentDateTime,
 			"",
 			"",
 			false,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\n",
 		},
 		{
 			"All together now",
 			[]string{"test@itsallbroken.com", "repairs@itsallbroken.com"},
 			[]string{"cc1@itsallbroken.com", "cc2@itsallbroken.com"},
 			[]string{"bcc1@itsallbroken.com", "bcc2@itsallbroken.com"},
-			currentDateTime,
 			"",
 			"",
 			true,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc1@itsallbroken.com\r\nCC: cc2@itsallbroken.com\r\nBCC: bcc1@itsallbroken.com\r\nBCC: bcc2@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc1@itsallbroken.com\r\nCC: cc2@itsallbroken.com\r\nBCC: bcc1@itsallbroken.com\r\nBCC: bcc2@itsallbroken.com\r\n",
 		},
 	}
 	for _, tt := range tests {
@@ -193,6 +185,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 				ccAddrs:        tt.rccAddrs,
 				bccAddrs:       tt.rbccAddrs,
 				writeBccHeader: tt.rwriteBccHeader,
+				date:           now,
 			}
 
 			buf := &bytes.Buffer{}
@@ -279,6 +272,7 @@ func TestMailYakWriteBody(t *testing.T) {
 func TestMailYakBuildMime(t *testing.T) {
 	t.Parallel()
 
+	now := time.Now().Format(time.RFC1123Z)
 	tests := []struct {
 		// Test description.
 		name string
@@ -286,7 +280,6 @@ func TestMailYakBuildMime(t *testing.T) {
 		rHTML     []byte
 		rPlain    []byte
 		rtoAddrs  []string
-		rDate     string
 		rsubject  string
 		rfromAddr string
 		rfromName string
@@ -300,12 +293,11 @@ func TestMailYakBuildMime(t *testing.T) {
 			[]byte{},
 			[]byte{},
 			[]string{""},
-			currentDateTime,
 			"",
 			"",
 			"",
 			"",
-			"From: \r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--alt--\r\n\r\n--mixed--\r\n",
+			"From: \r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--alt--\r\n\r\n--mixed--\r\n",
 			false,
 		},
 		{
@@ -313,12 +305,11 @@ func TestMailYakBuildMime(t *testing.T) {
 			[]byte("HTML"),
 			[]byte{},
 			[]string{""},
-			currentDateTime,
 			"",
 			"",
 			"",
 			"",
-			"From: \r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n--alt\r\nContent-Type: text/html; charset=UTF-8\r\n\r\nHTML\r\n--alt--\r\n\r\n--mixed--\r\n",
+			"From: \r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n--alt\r\nContent-Type: text/html; charset=UTF-8\r\n\r\nHTML\r\n--alt--\r\n\r\n--mixed--\r\n",
 			false,
 		},
 		{
@@ -326,12 +317,11 @@ func TestMailYakBuildMime(t *testing.T) {
 			[]byte{},
 			[]byte("Plain"),
 			[]string{""},
-			currentDateTime,
 			"",
 			"",
 			"",
 			"",
-			"From: \r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n--alt\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nPlain\r\n--alt--\r\n\r\n--mixed--\r\n",
+			"From: \r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n--alt\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nPlain\r\n--alt--\r\n\r\n--mixed--\r\n",
 			false,
 		},
 		{
@@ -339,12 +329,11 @@ func TestMailYakBuildMime(t *testing.T) {
 			[]byte{},
 			[]byte{},
 			[]string{""},
-			currentDateTime,
 			"",
 			"",
 			"",
 			"reply",
-			"From: \r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nReply-To: reply\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--alt--\r\n\r\n--mixed--\r\n",
+			"From: \r\nMime-Version: 1.0\r\nDate: " + now + "\r\nReply-To: reply\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--alt--\r\n\r\n--mixed--\r\n",
 			false,
 		},
 		{
@@ -352,12 +341,11 @@ func TestMailYakBuildMime(t *testing.T) {
 			[]byte{},
 			[]byte{},
 			[]string{""},
-			currentDateTime,
 			"",
 			"",
 			"name",
 			"",
-			"From: name <>\r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--alt--\r\n\r\n--mixed--\r\n",
+			"From: name <>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--alt--\r\n\r\n--mixed--\r\n",
 			false,
 		},
 		{
@@ -365,12 +353,11 @@ func TestMailYakBuildMime(t *testing.T) {
 			[]byte{},
 			[]byte{},
 			[]string{""},
-			currentDateTime,
 			"",
 			"addr",
 			"name",
 			"",
-			"From: name <addr>\r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--alt--\r\n\r\n--mixed--\r\n",
+			"From: name <addr>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--alt--\r\n\r\n--mixed--\r\n",
 			false,
 		},
 		{
@@ -378,12 +365,11 @@ func TestMailYakBuildMime(t *testing.T) {
 			[]byte{},
 			[]byte{},
 			[]string{""},
-			currentDateTime,
 			"",
 			"from",
 			"",
 			"",
-			"From: from\r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--alt--\r\n\r\n--mixed--\r\n",
+			"From: from\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--alt--\r\n\r\n--mixed--\r\n",
 			false,
 		},
 		{
@@ -391,12 +377,11 @@ func TestMailYakBuildMime(t *testing.T) {
 			[]byte{},
 			[]byte{},
 			[]string{""},
-			currentDateTime,
 			"subject",
 			"",
 			"",
 			"",
-			"From: \r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: subject\r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--alt--\r\n\r\n--mixed--\r\n",
+			"From: \r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: subject\r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--alt--\r\n\r\n--mixed--\r\n",
 			false,
 		},
 		{
@@ -404,12 +389,11 @@ func TestMailYakBuildMime(t *testing.T) {
 			[]byte{},
 			[]byte{},
 			[]string{"one", "two"},
-			currentDateTime,
 			"",
 			"",
 			"",
 			"",
-			"From: \r\nMime-Version: 1.0\r\nDate: " + currentDateTime + "\r\nSubject: \r\nTo: one\r\nTo: two\r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--alt--\r\n\r\n--mixed--\r\n",
+			"From: \r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: one\r\nTo: two\r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--alt--\r\n\r\n--mixed--\r\n",
 			false,
 		},
 	}
@@ -428,6 +412,7 @@ func TestMailYakBuildMime(t *testing.T) {
 				fromName:  tt.rfromName,
 				replyTo:   tt.rreplyTo,
 				trimRegex: regex,
+				date:      now,
 			}
 			m.HTML().Write(tt.rHTML)
 			m.Plain().Write(tt.rPlain)
