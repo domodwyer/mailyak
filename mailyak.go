@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/smtp"
 	"regexp"
+	"time"
 )
 
 // TODO: in the future, when aliasing is supported or we're making a breaking
@@ -48,7 +49,7 @@ func New(host string, auth smtp.Auth) *MailYak {
 		auth:           auth,
 		trimRegex:      regexp.MustCompile("\r?\n"),
 		writeBccHeader: false,
-		date:           currentDateTime,
+		date:           time.Now().Format(time.RFC1123Z),
 	}
 }
 
