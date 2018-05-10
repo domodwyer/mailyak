@@ -55,13 +55,8 @@ func New(host string, auth smtp.Auth) *MailYak {
 	}
 }
 
-func GetMailYakForMime(subject string, to string, fromEmail string, fromName string, replyTo string, headers textproto.MIMEHeader) *MailYak {
+func GetMailYakForMime(headers textproto.MIMEHeader) *MailYak {
 	my := &MailYak{
-		toAddrs: []string{to},
-		fromAddr:fromEmail,
-		fromName: fromName,
-		replyTo: replyTo,
-		subject: subject,
 		trimRegex:      regexp.MustCompile("\r?\n"),
 		writeBccHeader: false,
 		date:           time.Now().Format(time.RFC1123Z),
