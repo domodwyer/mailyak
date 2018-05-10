@@ -76,8 +76,10 @@ func (m *MailYak) buildMimeWithBoundaries(mb, ab string) (*bytes.Buffer, error) 
 // writeHeaders writes the Mime-Version, Date, Reply-To, From, To and Subject headers.
 func (m *MailYak) writeHeaders(buf io.Writer) error {
 
-	if _, err := buf.Write([]byte(m.fromHeader())); err != nil {
-		return err
+	if m.fromAddr != "" {
+		if _, err := buf.Write([]byte(m.fromHeader())); err != nil {
+			return err
+		}
 	}
 
 	if _, err := buf.Write([]byte("Mime-Version: 1.0\r\n")); err != nil {

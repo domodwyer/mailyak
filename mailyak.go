@@ -62,6 +62,7 @@ func GetMailYakForMime(headers textproto.MIMEHeader) *MailYak {
 		date:           time.Now().Format(time.RFC1123Z),
 	}
 
+	my.headers = make(map[string]string, 0)
 	for k, _ := range headers {
 		if k != "Content-Type" && k != "Mime-Version" {
 			my.headers[k] = headers.Get(k)
