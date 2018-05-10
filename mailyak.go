@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"net/smtp"
+	"net/textproto"
 	"regexp"
 	"time"
-	"net/textproto"
 )
 
 // TODO: in the future, when aliasing is supported or we're making a breaking
@@ -30,7 +30,7 @@ type MailYak struct {
 	host           string
 	writeBccHeader bool
 	date           string
-	headers map[string]string
+	headers        map[string]string
 }
 
 // New returns an instance of MailYak using host as the SMTP server, and
@@ -64,7 +64,7 @@ func GetMailYakForMime(headers textproto.MIMEHeader) *MailYak {
 
 	for k, _ := range headers {
 		if k != "Content-Type" && k != "Mime-Version" {
-			 my.headers[k] = headers.Get(k)
+			my.headers[k] = headers.Get(k)
 		}
 	}
 	return my
