@@ -6,6 +6,7 @@ import (
 	"net/smtp"
 	"regexp"
 	"time"
+	"net/textproto"
 )
 
 // TODO: in the future, when aliasing is supported or we're making a breaking
@@ -29,6 +30,7 @@ type MailYak struct {
 	host           string
 	writeBccHeader bool
 	date           string
+	headers map[string]string
 }
 
 // New returns an instance of MailYak using host as the SMTP server, and
@@ -51,6 +53,26 @@ func New(host string, auth smtp.Auth) *MailYak {
 		writeBccHeader: false,
 		date:           time.Now().Format(time.RFC1123Z),
 	}
+}
+
+func GetMailYakForMime(subject string, to string, fromEmail string, fromName string, replyTo string, headers textproto.MIMEHeader) *MailYak {
+	my := &MailYak{
+		toAddrs: []string{to},
+		fromAddr:fromEmail,
+		fromName: fromName,
+		replyTo: replyTo,
+		subject: subject,
+		trimRegex:      regexp.MustCompile("\r?\n"),
+		writeBccHeader: false,
+		date:           time.Now().Format(time.RFC1123Z),
+	}
+
+	for k, _ := range headers {
+		if k != "Content-Type" && k != "Mime-Version" {
+			 my.headers[k] = headers.Get(k)
+		}
+	}
+	return my
 }
 
 // Send attempts to send the built email via the configured SMTP server.

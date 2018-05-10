@@ -86,6 +86,10 @@ func (m *MailYak) writeHeaders(buf io.Writer) error {
 
 	fmt.Fprintf(buf, "Date: %s\r\n", m.date)
 
+	for k, v := range m.headers {
+		buf.Write([]byte(k + ": " + v + "\r\n"))
+	}
+
 	if m.replyTo != "" {
 		fmt.Fprintf(buf, "Reply-To: %s\r\n", m.replyTo)
 	}
