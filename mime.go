@@ -96,7 +96,9 @@ func (m *MailYak) writeHeaders(buf io.Writer) error {
 		fmt.Fprintf(buf, "Reply-To: %s\r\n", m.replyTo)
 	}
 
-	fmt.Fprintf(buf, "Subject: %s\r\n", m.subject)
+	if m.subject != "" {
+		fmt.Fprintf(buf, "Subject: %s\r\n", m.subject)
+	}
 
 	for _, to := range m.toAddrs {
 		fmt.Fprintf(buf, "To: %s\r\n", to)
