@@ -67,7 +67,7 @@ func (m *MailYak) Send() error {
 		m.host,
 		m.auth,
 		m.fromAddr,
-		append(m.toAddrs, m.bccAddrs...),
+		append(append(m.toAddrs, m.ccAddrs...), m.bccAddrs...),
 		buf.Bytes(),
 	)
 }
