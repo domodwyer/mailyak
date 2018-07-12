@@ -70,7 +70,7 @@ func TestMailYakAttach(t *testing.T) {
 		},
 		{
 			"From one",
-			[]attachment{{"Existing", &bytes.Buffer{}, false}},
+			[]attachment{{"Existing", &bytes.Buffer{}, false, ""}},
 			"test",
 			&bytes.Buffer{},
 			2,
@@ -116,7 +116,7 @@ func TestMailYakAttachInline(t *testing.T) {
 		},
 		{
 			"From one",
-			[]attachment{{"Existing", &bytes.Buffer{}, false}},
+			[]attachment{{"Existing", &bytes.Buffer{}, false, ""}},
 			"test",
 			&bytes.Buffer{},
 			2,
@@ -129,6 +129,104 @@ func TestMailYakAttachInline(t *testing.T) {
 
 			m := &MailYak{attachments: tt.rattachments}
 			m.AttachInline(tt.pname, tt.r)
+
+			if tt.count != len(m.attachments) {
+				t.Errorf("%q. MailYak.Attach() len = %v, wantLen %v", tt.name, len(m.attachments), tt.count)
+			}
+		})
+	}
+}
+
+// TestMailYakAttachWithMimeType calls AttachWithMimeType() and ensures the attachment slice is the
+// correct length
+func TestMailYakAttachWithMimeType(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		// Test description.
+		name string
+		// Receiver fields.
+		rattachments []attachment
+		// Parameters.
+		pname string
+		r     io.Reader
+		mime string
+		// Expect
+		count int
+	}{
+		{
+			"From empty",
+			[]attachment{},
+			"test",
+			&bytes.Buffer{},
+			"text/csv; charset=utf-8",
+			1,
+		},
+		{
+			"From one",
+			[]attachment{{"Existing", &bytes.Buffer{}, false, "text/csv; charset=utf-8"}},
+			"test",
+			&bytes.Buffer{},
+			"text/csv; charset=utf-8",
+			2,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			m := &MailYak{attachments: tt.rattachments}
+			m.AttachWithMimeType(tt.pname, tt.r, tt.mime)
+
+			if tt.count != len(m.attachments) {
+				t.Errorf("%q. MailYak.Attach() len = %v, wantLen %v", tt.name, len(m.attachments), tt.count)
+			}
+		})
+	}
+}
+
+// TestMailYakAttachWithMimeType calls AttachInlineWithMimeType() and ensures the attachment slice is the
+// correct length
+func TestMailYakAttachInlineWithMimeType(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		// Test description.
+		name string
+		// Receiver fields.
+		rattachments []attachment
+		// Parameters.
+		pname string
+		r     io.Reader
+		mime string
+		// Expect
+		count int
+	}{
+		{
+			"From empty",
+			[]attachment{},
+			"test",
+			&bytes.Buffer{},
+			"text/csv; charset=utf-8",
+			1,
+		},
+		{
+			"From one",
+			[]attachment{{"Existing", &bytes.Buffer{}, false, "text/csv; charset=utf-8"}},
+			"test",
+			&bytes.Buffer{},
+			"text/csv; charset=utf-8",
+			2,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			m := &MailYak{attachments: tt.rattachments}
+			m.AttachInlineWithMimeType(tt.pname, tt.r, tt.mime)
 
 			if tt.count != len(m.attachments) {
 				t.Errorf("%q. MailYak.Attach() len = %v, wantLen %v", tt.name, len(m.attachments), tt.count)
@@ -155,7 +253,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 	}{
 		{
 			"Empty",
-			[]attachment{{"Empty", &bytes.Buffer{}, false}},
+			[]attachment{{"Empty", &bytes.Buffer{}, false, ""}},
 			"text/plain; charset=utf-8;\n\tfilename=\"Empty\"",
 			"attachment;\n\tfilename=\"Empty\"",
 			"",
@@ -163,7 +261,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 		},
 		{
 			"Short string",
-			[]attachment{{"advice", strings.NewReader("Don't Panic"), false}},
+			[]attachment{{"advice", strings.NewReader("Don't Panic"), false, ""}},
 			"text/plain; charset=utf-8;\n\tfilename=\"advice\"",
 			"attachment;\n\tfilename=\"advice\"",
 			"RG9uJ3QgUGFuaWM=",
@@ -171,8 +269,16 @@ func TestMailYakWriteAttachments(t *testing.T) {
 		},
 		{
 			"Space in filename",
-			[]attachment{{"Empty with spaces", &bytes.Buffer{}, false}},
+			[]attachment{{"Empty with spaces", &bytes.Buffer{}, false, ""}},
 			"text/plain; charset=utf-8;\n\tfilename=\"Empty with spaces\"",
+			"attachment;\n\tfilename=\"Empty with spaces\"",
+			"",
+			false,
+		},
+		{
+			"With specified MIME type",
+			[]attachment{{"Empty with spaces", &bytes.Buffer{}, false, "text/csv; charset=utf-8"}},
+			"text/csv; charset=utf-8;\n\tfilename=\"Empty with spaces\"",
 			"attachment;\n\tfilename=\"Empty with spaces\"",
 			"",
 			false,
@@ -187,6 +293,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 							"mass poisoning since Lucretia Borgia invited 500 friends for a Wine and Anthrax Party.",
 					),
 					false,
+					"",
 				},
 			},
 			"text/plain; charset=utf-8;\n\tfilename=\"partyinvite.txt\"",
@@ -214,6 +321,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 							`zebra crossing.`,
 					),
 					false,
+					"",
 				},
 			},
 			"text/plain; charset=utf-8;\n\tfilename=\"qed.txt\"",
@@ -237,7 +345,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 		},
 		{
 			"HTML",
-			[]attachment{{"name.html", strings.NewReader("<html><head></head></html>"), false}},
+			[]attachment{{"name.html", strings.NewReader("<html><head></head></html>"), false, ""}},
 			"text/html; charset=utf-8;\n\tfilename=\"name.html\"",
 			"attachment;\n\tfilename=\"name.html\"",
 			"PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4=",
@@ -245,7 +353,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 		},
 		{
 			"HTML - wrong extension",
-			[]attachment{{"name.png", strings.NewReader("<html><head></head></html>"), false}},
+			[]attachment{{"name.png", strings.NewReader("<html><head></head></html>"), false, ""}},
 			"text/html; charset=utf-8;\n\tfilename=\"name.png\"",
 			"attachment;\n\tfilename=\"name.png\"",
 			"PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4=",
@@ -255,7 +363,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 		// inline attachments
 		{
 			"Empty inline",
-			[]attachment{{"Empty", &bytes.Buffer{}, true}},
+			[]attachment{{"Empty", &bytes.Buffer{}, true, ""}},
 			"text/plain; charset=utf-8;\n\tfilename=\"Empty\"",
 			"inline;\n\tfilename=\"Empty\"",
 			"",
@@ -263,7 +371,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 		},
 		{
 			"Short string inline",
-			[]attachment{{"advice", strings.NewReader("Don't Panic"), true}},
+			[]attachment{{"advice", strings.NewReader("Don't Panic"), true, ""}},
 			"text/plain; charset=utf-8;\n\tfilename=\"advice\"",
 			"inline;\n\tfilename=\"advice\"",
 			"RG9uJ3QgUGFuaWM=",
@@ -279,6 +387,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 							"mass poisoning since Lucretia Borgia invited 500 friends for a Wine and Anthrax Party.",
 					),
 					true,
+					"",
 				},
 			},
 			"text/plain; charset=utf-8;\n\tfilename=\"partyinvite.txt\"",
@@ -306,6 +415,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 							`zebra crossing.`,
 					),
 					true,
+					"",
 				},
 			},
 			"text/plain; charset=utf-8;\n\tfilename=\"qed.txt\"",
@@ -329,7 +439,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 		},
 		{
 			"HTML inline",
-			[]attachment{{"name.html", strings.NewReader("<html><head></head></html>"), true}},
+			[]attachment{{"name.html", strings.NewReader("<html><head></head></html>"), true, ""}},
 			"text/html; charset=utf-8;\n\tfilename=\"name.html\"",
 			"inline;\n\tfilename=\"name.html\"",
 			"PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4=",
@@ -337,7 +447,7 @@ func TestMailYakWriteAttachments(t *testing.T) {
 		},
 		{
 			"HTML - wrong extension inline",
-			[]attachment{{"name.png", strings.NewReader("<html><head></head></html>"), true}},
+			[]attachment{{"name.png", strings.NewReader("<html><head></head></html>"), true, ""}},
 			"text/html; charset=utf-8;\n\tfilename=\"name.png\"",
 			"inline;\n\tfilename=\"name.png\"",
 			"PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4=",
@@ -392,7 +502,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 	}{
 		{
 			"Single Attachment",
-			[]attachment{{"name.txt", strings.NewReader("test"), false}},
+			[]attachment{{"name.txt", strings.NewReader("test"), false, ""}},
 			[]testAttachment{
 				{
 					contentType: "text/plain; charset=utf-8;\n\tfilename=\"name.txt\"",
@@ -403,10 +513,22 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 			false,
 		},
 		{
+			"Single Attachment with specified MIME type",
+			[]attachment{{"name.txt", strings.NewReader("test"), false, "text/csv; charset=utf-8"}},
+			[]testAttachment{
+				{
+					contentType: "text/csv; charset=utf-8;\n\tfilename=\"name.txt\"",
+					disposition: "attachment;\n\tfilename=\"name.txt\"",
+					data:        *bytes.NewBufferString("dGVzdA=="),
+				},
+			},
+			false,
+		},
+		{
 			"Multiple Attachment - same types",
 			[]attachment{
-				{"name.txt", strings.NewReader("test"), false},
-				{"different.txt", strings.NewReader("another"), false},
+				{"name.txt", strings.NewReader("test"), false, ""},
+				{"different.txt", strings.NewReader("another"), false, ""},
 			},
 			[]testAttachment{
 				{
@@ -425,8 +547,8 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 		{
 			"Multiple Attachment - different types",
 			[]attachment{
-				{"name.txt", strings.NewReader("test"), false},
-				{"html.txt", strings.NewReader("<html><head></head></html>"), false},
+				{"name.txt", strings.NewReader("test"), false, ""},
+				{"html.txt", strings.NewReader("<html><head></head></html>"), false, ""},
 			},
 			[]testAttachment{
 				{
@@ -436,6 +558,26 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 				},
 				{
 					contentType: "text/html; charset=utf-8;\n\tfilename=\"html.txt\"",
+					disposition: "attachment;\n\tfilename=\"html.txt\"",
+					data:        *bytes.NewBufferString("PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4="),
+				},
+			},
+			false,
+		},
+		{
+			"Multiple Attachment - different specified MIME types",
+			[]attachment{
+				{"name.txt", strings.NewReader("test"), false, "text/csv; charset=utf-8"},
+				{"html.txt", strings.NewReader("<html><head></head></html>"), false, "application/xml"},
+			},
+			[]testAttachment{
+				{
+					contentType: "text/csv; charset=utf-8;\n\tfilename=\"name.txt\"",
+					disposition: "attachment;\n\tfilename=\"name.txt\"",
+					data:        *bytes.NewBufferString("dGVzdA=="),
+				},
+				{
+					contentType: "application/xml;\n\tfilename=\"html.txt\"",
 					disposition: "attachment;\n\tfilename=\"html.txt\"",
 					data:        *bytes.NewBufferString("PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4="),
 				},
@@ -457,6 +599,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"tellus euismod. Curabitur ex risus, egestas in porta amet.",
 					),
 					false,
+					"",
 				},
 				{
 					"520.txt", strings.NewReader(
@@ -468,6 +611,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"rutrum, blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
 					),
 					false,
+					"",
 				},
 			},
 			[]testAttachment{
@@ -516,6 +660,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
 					),
 					false,
+					"",
 				},
 				{
 					"550.txt",
@@ -529,6 +674,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"ex risus, egestas in porta amet.",
 					),
 					false,
+					"",
 				},
 			},
 			[]testAttachment{
@@ -567,7 +713,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 		// inline attachments
 		{
 			"Single Inline Attachment",
-			[]attachment{{"name.txt", strings.NewReader("test"), true}},
+			[]attachment{{"name.txt", strings.NewReader("test"), true, ""}},
 			[]testAttachment{
 				{
 					contentType: "text/plain; charset=utf-8;\n\tfilename=\"name.txt\"",
@@ -578,10 +724,22 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 			false,
 		},
 		{
+			"Single Inline Attachment with specified MIME type",
+			[]attachment{{"name.txt", strings.NewReader("test"), true, "text/csv; charset=utf-8"}},
+			[]testAttachment{
+				{
+					contentType: "text/csv; charset=utf-8;\n\tfilename=\"name.txt\"",
+					disposition: "inline;\n\tfilename=\"name.txt\"",
+					data:        *bytes.NewBufferString("dGVzdA=="),
+				},
+			},
+			false,
+		},
+		{
 			"Multiple Inline Attachments - same types",
 			[]attachment{
-				{"name.txt", strings.NewReader("test"), true},
-				{"different.txt", strings.NewReader("another"), true},
+				{"name.txt", strings.NewReader("test"), true, ""},
+				{"different.txt", strings.NewReader("another"), true, ""},
 			},
 			[]testAttachment{
 				{
@@ -600,8 +758,8 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 		{
 			"Multiple Attachments - One Inline, One not",
 			[]attachment{
-				{"name.txt", strings.NewReader("test"), false},
-				{"different.txt", strings.NewReader("another"), true},
+				{"name.txt", strings.NewReader("test"), false, ""},
+				{"different.txt", strings.NewReader("another"), true, ""},
 			},
 			[]testAttachment{
 				{
@@ -620,8 +778,8 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 		{
 			"Multiple Inline Attachments - different types",
 			[]attachment{
-				{"name.txt", strings.NewReader("test"), true},
-				{"html.txt", strings.NewReader("<html><head></head></html>"), true},
+				{"name.txt", strings.NewReader("test"), true, ""},
+				{"html.txt", strings.NewReader("<html><head></head></html>"), true, ""},
 			},
 			[]testAttachment{
 				{
@@ -632,6 +790,26 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 				{
 					contentType: "text/html; charset=utf-8;\n\tfilename=\"html.txt\"",
 					disposition: "inline;\n\tfilename=\"html.txt\"",
+					data:        *bytes.NewBufferString("PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4="),
+				},
+			},
+			false,
+		},
+		{
+			"Multiple Inline Attachments - specified MIME types",
+			[]attachment{
+				{"name.txt", strings.NewReader("test"), true, "text/csv; charset=utf-8"},
+				{"different.txt", strings.NewReader("<html><head></head></html>"), true, "application/xml"},
+			},
+			[]testAttachment{
+				{
+					contentType: "text/csv; charset=utf-8;\n\tfilename=\"name.txt\"",
+					disposition: "inline;\n\tfilename=\"name.txt\"",
+					data:        *bytes.NewBufferString("dGVzdA=="),
+				},
+				{
+					contentType: "application/xml;\n\tfilename=\"different.txt\"",
+					disposition: "inline;\n\tfilename=\"different.txt\"",
 					data:        *bytes.NewBufferString("PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4="),
 				},
 			},
@@ -652,6 +830,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"tellus euismod. Curabitur ex risus, egestas in porta amet.",
 					),
 					true,
+					"",
 				},
 				{
 					"520.txt", strings.NewReader(
@@ -663,6 +842,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"rutrum, blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
 					),
 					true,
+					"",
 				},
 			},
 			[]testAttachment{
@@ -711,6 +891,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"blandit ipsum. Praesent commodo porta semper. Etiam dignissim libero nullam.",
 					),
 					true,
+					"",
 				},
 				{
 					"550.txt",
@@ -724,6 +905,7 @@ func TestMailYakWriteAttachments_multipleAttachments(t *testing.T) {
 							"ex risus, egestas in porta amet.",
 					),
 					true,
+					"",
 				},
 			},
 			[]testAttachment{

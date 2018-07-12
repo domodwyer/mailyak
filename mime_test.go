@@ -472,7 +472,7 @@ func TestMailYakBuildMime_withAttachments(t *testing.T) {
 			"",
 			"",
 			[]attachment{
-				{"test.txt", strings.NewReader("content"), false},
+				{"test.txt", strings.NewReader("content"), false, ""},
 			},
 			[]string{"Y29udGVudA=="},
 			false,
@@ -487,7 +487,7 @@ func TestMailYakBuildMime_withAttachments(t *testing.T) {
 			"",
 			"",
 			[]attachment{
-				{"test.txt", strings.NewReader("content"), true},
+				{"test.txt", strings.NewReader("content"), true, ""},
 			},
 			[]string{"Y29udGVudA=="},
 			false,
@@ -502,8 +502,8 @@ func TestMailYakBuildMime_withAttachments(t *testing.T) {
 			"",
 			"",
 			[]attachment{
-				{"test.txt", strings.NewReader("content"), false},
-				{"another.txt", strings.NewReader("another"), false},
+				{"test.txt", strings.NewReader("content"), false, ""},
+				{"another.txt", strings.NewReader("another"), false, ""},
 			},
 			[]string{"Y29udGVudA==", "YW5vdGhlcg=="},
 			false,
@@ -518,8 +518,8 @@ func TestMailYakBuildMime_withAttachments(t *testing.T) {
 			"",
 			"",
 			[]attachment{
-				{"test.txt", strings.NewReader("content"), true},
-				{"another.txt", strings.NewReader("another"), true},
+				{"test.txt", strings.NewReader("content"), true, ""},
+				{"another.txt", strings.NewReader("another"), true, ""},
 			},
 			[]string{"Y29udGVudA==", "YW5vdGhlcg=="},
 			false,
