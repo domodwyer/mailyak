@@ -135,3 +135,13 @@ func (m *MailYak) ReplyTo(addr string) {
 func (m *MailYak) Subject(sub string) {
 	m.subject = mime.QEncoding.Encode("UTF-8", m.trimRegex.ReplaceAllString(sub, ""))
 }
+
+// AddHeader adds an arbitrary email header.
+//
+// If value contains non-ASCII characters, it is Q-encoded according to RFC1342.
+// As always, validate any user input before adding it to a message, as this
+// method may enable an attacker to override the standard headers and, for
+// example, BCC themselves in a password reset email to a different user.
+func (m *MailYak) AddHeader(name, value string) {
+	m.headers[m.trimRegex.ReplaceAllString(name, "")] = mime.QEncoding.Encode("UTF-8", m.trimRegex.ReplaceAllString(value, ""))
+}

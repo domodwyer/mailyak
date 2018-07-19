@@ -19,6 +19,9 @@ func Example() {
 
 	mail.Subject("Business proposition")
 
+	// Add a custom header
+	mail.AddHeader("X-TOTALLY-NOT-A-SCAM", "true")
+
 	// mail.HTMLWriter() and mail.PlainWriter() implement io.Writer, so you can
 	// do handy things like parse a template directly into the email body - here
 	// we just use io.WriteString()
