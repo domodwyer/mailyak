@@ -23,17 +23,33 @@ type attachment struct {
 	filename string
 	content  io.Reader
 	inline   bool
+	mimeType string
 }
 
 // Attach adds the contents of r to the email as an attachment with name as the
 // filename.
 //
-// r is not read until Send is called.
+// r is not read until Send is called and the MIME type will be detected
+// using https://golang.org/pkg/net/http/#DetectContentType
 func (m *MailYak) Attach(name string, r io.Reader) {
 	m.attachments = append(m.attachments, attachment{
 		filename: name,
 		content:  r,
 		inline:   false,
+	})
+}
+
+// AttachWithMimeType adds the contents of r to the email as an attachment with
+// name as the filename and mimeType as the specified MIME type of the content.
+// It is up to the user to ensure the mimeType is correct.
+//
+// r is not read until Send is called
+func (m *MailYak) AttachWithMimeType(name string, r io.Reader, mimeType string) {
+	m.attachments = append(m.attachments, attachment{
+		filename: name,
+		content:  r,
+		inline:   false,
+		mimeType: mimeType,
 	})
 }
 
@@ -46,12 +62,33 @@ func (m *MailYak) Attach(name string, r io.Reader) {
 //
 // 		<img src="cid:myFileName"/>
 //
-// r is not read until Send is called.
+// r is not read until Send is called and the MIME type will be detected
+// using https://golang.org/pkg/net/http/#DetectContentType
 func (m *MailYak) AttachInline(name string, r io.Reader) {
 	m.attachments = append(m.attachments, attachment{
 		filename: name,
 		content:  r,
 		inline:   true,
+	})
+}
+
+// AttachInlineWithMimeType adds the contents of r to the email as an inline attachment
+// with mimeType as the specified MIME type of the content. Inline attachments are
+// typically used within the email body, such as a logo or header image. It is up to the
+// user to ensure name is unique and the specified mimeType is correct.
+//
+// Files can be referenced by their name within the email using the cid URL
+// protocol:
+//
+// 		<img src="cid:myFileName"/>
+//
+// r is not read until Send is called.
+func (m *MailYak) AttachInlineWithMimeType(name string, r io.Reader, mimeType string) {
+	m.attachments = append(m.attachments, attachment{
+		filename: name,
+		content:  r,
+		inline:   true,
+		mimeType: mimeType,
 	})
 }
 
@@ -71,7 +108,11 @@ func (m *MailYak) writeAttachments(mixed partCreator, splitter writeWrapper) err
 			return err
 		}
 
-		ctype := fmt.Sprintf("%s;\n\tfilename=%q", http.DetectContentType(h[:hLen]), item.filename)
+		if item.mimeType == "" {
+			item.mimeType = http.DetectContentType(h[:hLen])
+		}
+
+		ctype := fmt.Sprintf("%s;\n\tfilename=%q", item.mimeType, item.filename)
 
 		part, err := mixed.CreatePart(getMIMEHeader(item, ctype))
 		if err != nil {
