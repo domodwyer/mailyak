@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/smtp"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -23,6 +24,7 @@ type MailYak struct {
 	fromAddr       string
 	fromName       string
 	replyTo        string
+	headers        map[string]string // arbitrary headers
 	attachments    []attachment
 	auth           smtp.Auth
 	trimRegex      *regexp.Regexp
@@ -45,6 +47,7 @@ type MailYak struct {
 //
 func New(host string, auth smtp.Auth) *MailYak {
 	return &MailYak{
+		headers:        map[string]string{},
 		host:           host,
 		auth:           auth,
 		trimRegex:      regexp.MustCompile("\r?\n"),
@@ -89,13 +92,24 @@ func (m *MailYak) MimeBuf() (*bytes.Buffer, error) {
 //
 // Authentication information is not included in the returned string.
 func (m *MailYak) String() string {
-	var att []string
+	var (
+		att    []string
+		custom string
+	)
 	for _, a := range m.attachments {
 		att = append(att, "{filename: "+a.filename+"}")
 	}
+
+	if len(m.headers) > 0 {
+		var hdrs []string
+		for k, v := range m.headers {
+			hdrs = append(hdrs, fmt.Sprintf("%s: %q", k, v))
+		}
+		custom = strings.Join(hdrs, ", ") + ", "
+	}
 	return fmt.Sprintf(
 		"&MailYak{date: %q, from: %q, fromName: %q, html: %v bytes, plain: %v bytes, toAddrs: %v, "+
-			"bccAddrs: %v, subject: %q, host: %q, attachments (%v): %v, auth set: %v}",
+			"bccAddrs: %v, subject: %q, %vhost: %q, attachments (%v): %v, auth set: %v}",
 		m.date,
 		m.fromAddr,
 		m.fromName,
@@ -104,6 +118,7 @@ func (m *MailYak) String() string {
 		m.toAddrs,
 		m.bccAddrs,
 		m.subject,
+		custom,
 		m.host,
 		len(att),
 		att,
