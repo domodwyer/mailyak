@@ -227,7 +227,7 @@ func TestMailYakWriteBody(t *testing.T) {
 			"HTML",
 			"",
 			"t",
-			"--t\r\nContent-Type: text/html; charset=UTF-8\r\n\r\nHTML\r\n--t--\r\n",
+			"--t\r\nContent-Transfer-Encoding: quoted-printable\r\nContent-Type: text/html; charset=UTF-8\r\n\r\nHTML\r\n--t--\r\n",
 			false,
 		},
 		{
@@ -235,7 +235,7 @@ func TestMailYakWriteBody(t *testing.T) {
 			"",
 			"Plain",
 			"t",
-			"--t\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nPlain\r\n--t--\r\n",
+			"--t\r\nContent-Transfer-Encoding: quoted-printable\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nPlain\r\n--t--\r\n",
 			false,
 		},
 		{
@@ -243,7 +243,7 @@ func TestMailYakWriteBody(t *testing.T) {
 			"HTML",
 			"Plain",
 			"t",
-			"--t\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nPlain\r\n--t\r\nContent-Type: text/html; charset=UTF-8\r\n\r\nHTML\r\n--t--\r\n",
+			"--t\r\nContent-Transfer-Encoding: quoted-printable\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nPlain\r\n--t\r\nContent-Transfer-Encoding: quoted-printable\r\nContent-Type: text/html; charset=UTF-8\r\n\r\nHTML\r\n--t--\r\n",
 			false,
 		},
 	}
@@ -309,7 +309,7 @@ func TestMailYakBuildMime(t *testing.T) {
 			"",
 			"",
 			"",
-			"From: \r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n--alt\r\nContent-Type: text/html; charset=UTF-8\r\n\r\nHTML\r\n--alt--\r\n\r\n--mixed--\r\n",
+			"From: \r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n--alt\r\nContent-Transfer-Encoding: quoted-printable\r\nContent-Type: text/html; charset=UTF-8\r\n\r\nHTML\r\n--alt--\r\n\r\n--mixed--\r\n",
 			false,
 		},
 		{
@@ -321,7 +321,7 @@ func TestMailYakBuildMime(t *testing.T) {
 			"",
 			"",
 			"",
-			"From: \r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n--alt\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nPlain\r\n--alt--\r\n\r\n--mixed--\r\n",
+			"From: \r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: \r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n--alt\r\nContent-Transfer-Encoding: quoted-printable\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nPlain\r\n--alt--\r\n\r\n--mixed--\r\n",
 			false,
 		},
 		{
