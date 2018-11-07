@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"mime/quotedprintable"
 	"net/textproto"
 )
 
@@ -142,12 +143,17 @@ func (m *MailYak) writeBody(w io.Writer, boundary string) error {
 		c := fmt.Sprintf("%s; charset=UTF-8", ctype)
 
 		var part io.Writer
-		part, err = alt.CreatePart(textproto.MIMEHeader{"Content-Type": {c}})
+		part, err = alt.CreatePart(textproto.MIMEHeader{"Content-Type": {c}, "Content-Transfer-Encoding": {"quoted-printable"}})
 		if err != nil {
 			return
 		}
 
-		_, err = part.Write(data)
+		var buf bytes.Buffer
+		qpw := quotedprintable.NewWriter(&buf)
+		_, err = qpw.Write(data)
+		qpw.Close()
+
+		_, err = part.Write(buf.Bytes())
 	}
 
 	writePart("text/plain", m.plain.Bytes())
