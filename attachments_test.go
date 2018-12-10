@@ -150,7 +150,7 @@ func TestMailYakAttachWithMimeType(t *testing.T) {
 		// Parameters.
 		pname string
 		r     io.Reader
-		mime  string
+		mime string
 		// Expect
 		count int
 	}{
@@ -199,7 +199,7 @@ func TestMailYakAttachInlineWithMimeType(t *testing.T) {
 		// Parameters.
 		pname string
 		r     io.Reader
-		mime  string
+		mime string
 		// Expect
 		count int
 	}{

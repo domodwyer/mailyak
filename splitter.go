@@ -1,8 +1,6 @@
 package mailyak
 
-import (
-	"io"
-)
+import "io"
 
 const maxLineLen = 60
 
@@ -10,7 +8,6 @@ const maxLineLen = 60
 // before writing a "\r\n" newline
 type lineSplitter struct {
 	w      io.Writer
-	wrote  uint
 	maxLen int
 }
 
@@ -21,43 +18,27 @@ func (b lineSplitterBuilder) new(w io.Writer) io.Writer {
 }
 
 func (w *lineSplitter) Write(p []byte) (int, error) {
-	// Calculate the previously wrote line length
-	leftover := w.wrote % uint(w.maxLen)
+	offset := 0
+	breaks := (len(p) / w.maxLen)
 
-	// Calculate the amount of bytes remaining for this line
-	lineSize := w.maxLen - int(leftover)
-
-	// Break p into chunks
-	for i := 0; i < len(p); i += lineSize {
-		// Calculate the end of the chunk offset
-		end := i + lineSize
-		if end > len(p) {
-			end = len(p)
+	for i := 0; i < breaks; i++ {
+		// Write line
+		if i, err := w.w.Write(p[offset : offset+w.maxLen]); err != nil {
+			return i, err
 		}
 
-		// Slice chunk out of p
-		chunk := p[i:end]
-
-		// Increment the amount wrote so far by the chunk size
-		w.wrote += uint(len(chunk))
-
-		// Write the chunk
-		if n, err := w.w.Write(chunk); err != nil {
-			return i + n, err
+		// Write line break
+		if i, err := w.w.Write([]byte("\r\n")); err != nil {
+			return i, err
 		}
 
-		// If this finishes a line, add linebreaks
-		if end == i+lineSize {
-			if _, err := w.w.Write([]byte("\r\n")); err != nil {
-				// If this errors, return the bytes wrote so far from the
-				// caller's perspective (it is unaware newlines are being added)
-				return i + len(chunk), err
-			}
-		}
-
-		// Reset lineesizee
-		lineSize = w.maxLen
+		offset += w.maxLen
 	}
 
-	return len(p), nil
+	// Write remaining
+	if i, err := w.w.Write(p[offset:]); err != nil {
+		return i, err
+	}
+
+	return (len(p) + (breaks * 2)), nil
 }
