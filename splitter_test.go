@@ -1,6 +1,7 @@
 package mailyak
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/base64"
 	"testing"
@@ -112,5 +113,25 @@ func TestLineSplitterWrite(t *testing.T) {
 				t.Errorf("%q. base64LineWriter.Write() = \n%v\n, want \n%v\n", tt.name, buf.String(), tt.want)
 			}
 		})
+	}
+}
+
+func TestChunkedWrites(t *testing.T) {
+	s := "a 21 character string"
+
+	var buf bytes.Buffer
+	w := &lineSplitter{w: &buf, maxLen: maxLineLen}
+
+	for i := 0; i < 20; i++ {
+		if n, err := w.Write([]byte(s)); n != len(s) || err != nil {
+			t.Fatalf("wrote %d, err %v", n, err)
+		}
+	}
+
+	scanner := bufio.NewScanner(&buf)
+	for scanner.Scan() {
+		if len(scanner.Text()) > maxLineLen {
+			t.Errorf("got linelength = %d want <= %d\n", len(scanner.Text()), maxLineLen)
+		}
 	}
 }
