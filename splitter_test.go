@@ -155,7 +155,7 @@ func TestLineSplitterWrite(t *testing.T) {
 				0x89, 0x10, 0x62, 0x22, 0x84, 0x98, 0x08, 0x21, 0x26, 0x42, 0x88, 0xdd, 0x07, 0xb4, 0x05, 0x5f,
 				0x21, 0xcb, 0x54, 0xd1, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
 			},
-				"iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAIAAAD2HxkiAAADl0lEQVR4nO3Z\r\n" +
+			"iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAIAAAD2HxkiAAADl0lEQVR4nO3Z\r\n" +
 				"MYrDQBREwR7j+19Zip0JHLxAVWy0IHDyaJh/tmu7zu/ftvPon/Otb33757ef\r\n" +
 				"AanvTv0T4N1ECDERQkyEEBMhxLyOQswSQkyEEBMhxEQIMRFCTIQQc6KAmCWE\r\n" +
 				"mAghJkKIiRBiIoSYCCHmRAExSwgxEUJMhBATIcRECDGvoxCzhBATIcRECDER\r\n" +

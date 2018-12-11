@@ -31,7 +31,9 @@ func (w *lineSplitter) Write(p []byte) (int, error) {
 	for i := 0; i < len(p); i += lineSize {
 
 		// Reset linesize
-		if i%60 != 0 && lineSize < w.maxLen { lineSize = w.maxLen}
+		if i%60 != 0 && lineSize < w.maxLen { 
+			lineSize = w.maxLen
+		}
 		
 		// Calculate the end of the chunk offset
 		end := i + lineSize
