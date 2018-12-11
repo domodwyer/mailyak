@@ -29,6 +29,12 @@ func (w *lineSplitter) Write(p []byte) (int, error) {
 
 	// Break p into chunks
 	for i := 0; i < len(p); i += lineSize {
+
+		// Reset linesize
+		if i%w.maxLen != 0 && lineSize < w.maxLen { 
+			lineSize = w.maxLen
+		}
+		
 		// Calculate the end of the chunk offset
 		end := i + lineSize
 		if end > len(p) {
@@ -37,7 +43,6 @@ func (w *lineSplitter) Write(p []byte) (int, error) {
 
 		// Slice chunk out of p
 		chunk := p[i:end]
-
 		// Increment the amount wrote so far by the chunk size
 		w.wrote += uint(len(chunk))
 
@@ -54,9 +59,6 @@ func (w *lineSplitter) Write(p []byte) (int, error) {
 				return i + len(chunk), err
 			}
 		}
-
-		// Reset lineesizee
-		lineSize = w.maxLen
 	}
 
 	return len(p), nil
