@@ -31,7 +31,7 @@ func (w *lineSplitter) Write(p []byte) (int, error) {
 	for i := 0; i < len(p); i += lineSize {
 
 		// Reset linesize
-		if i%60 != 0 && lineSize < w.maxLen { 
+		if i%w.maxLen != 0 && lineSize < w.maxLen { 
 			lineSize = w.maxLen
 		}
 		
