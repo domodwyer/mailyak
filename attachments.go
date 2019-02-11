@@ -144,11 +144,12 @@ func getMIMEHeader(a attachment, ctype string) textproto.MIMEHeader {
 	var header textproto.MIMEHeader
 
 	if a.inline {
-		disp = fmt.Sprintf("inline;\n\tfilename=%q", a.filename)
+		cid := fmt.Sprintf("<%s>", a.filename)
 		header = textproto.MIMEHeader{
 			"Content-Type":              {ctype},
-			"Content-Disposition":       {disp},
+			"Content-Disposition":       {"inline"},
 			"Content-Transfer-Encoding": {"base64"},
+			"Content-ID":                {cid},
 		}
 	} else {
 		disp = fmt.Sprintf("attachment;\n\tfilename=%q", a.filename)
