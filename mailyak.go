@@ -2,7 +2,10 @@ package mailyak
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
+	"github.com/pkg/errors"
+	"net"
 	"net/smtp"
 	"regexp"
 	"strings"
@@ -31,6 +34,7 @@ type MailYak struct {
 	host           string
 	writeBccHeader bool
 	date           string
+	tlsConfig      *tls.Config
 }
 
 // New returns an instance of MailYak using host as the SMTP server, and
@@ -45,7 +49,7 @@ type MailYak struct {
 // 			"stmp.itsallbroken.com",
 //		))
 //
-func New(host string, auth smtp.Auth) *MailYak {
+func New(host string, auth smtp.Auth, tlsConfig *tls.Config) *MailYak {
 	return &MailYak{
 		headers:        map[string]string{},
 		host:           host,
@@ -53,6 +57,7 @@ func New(host string, auth smtp.Auth) *MailYak {
 		trimRegex:      regexp.MustCompile("\r?\n"),
 		writeBccHeader: false,
 		date:           time.Now().Format(time.RFC1123Z),
+		tlsConfig:      tlsConfig,
 	}
 }
 
@@ -64,6 +69,63 @@ func (m *MailYak) Send() error {
 	buf, err := m.buildMime()
 	if err != nil {
 		return err
+	}
+
+	if m.tlsConfig != nil {
+		//if we have a tls config, use it
+		host, _, _ := net.SplitHostPort(m.host)
+		conn, err := tls.Dial("tcp", m.host, m.tlsConfig)
+		if err != nil {
+			return errors.New(fmt.Sprintf("error dial: %v", err))
+		}
+
+		c, err := smtp.NewClient(conn, host)
+		if err != nil {
+			return errors.New(fmt.Sprintf("error newClient: %v", err))
+		}
+
+		if err = c.Auth(m.auth); err != nil {
+			return errors.New(fmt.Sprintf("error auth: %v", err))
+		}
+
+		if err = c.Mail(m.fromAddr); err != nil {
+			return errors.New(fmt.Sprintf("error mail: %v", err))
+		}
+
+		for _, k := range m.toAddrs {
+			if err = c.Rcpt(k); err != nil {
+				return errors.New(fmt.Sprintf("error Rcpt to: %v", err))
+			}
+		}
+		for _, k := range m.ccAddrs {
+			if err = c.Rcpt(k); err != nil {
+				return errors.New(fmt.Sprintf("error Rcpt cc: %v", err))
+			}
+		}
+
+		for _, k := range m.bccAddrs {
+			if err = c.Rcpt(k); err != nil {
+				return errors.New(fmt.Sprintf("error Rcpt bcc: %v", err))
+			}
+		}
+
+		w, err := c.Data()
+		if err != nil {
+			return errors.New(fmt.Sprintf("error data: %v", err))
+		}
+
+		if _, err := w.Write(buf.Bytes()); err != nil {
+			return errors.New(fmt.Sprintf("error writing: %v", err))
+		}
+
+		if err := w.Close(); err != nil {
+			return errors.New(fmt.Sprintf("error closing: %v", err))
+		}
+
+		if err := c.Quit(); err != nil {
+			return errors.New(fmt.Sprintf("error quiting: %v", err))
+		}
+		return nil
 	}
 
 	return smtp.SendMail(
