@@ -29,7 +29,7 @@ go get -v github.com/domodwyer/mailyak
 mail := mailyak.New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
 
 mail.To("dom@itsallbroken.com")
-mail.From("nigerianprince@justneedshelp.com")
+mail.From("jsmith@example.com")
 mail.FromName("Prince Fournineteen")
 
 mail.Subject("Business proposition")
