@@ -14,7 +14,7 @@ func Example() {
 	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
 
 	mail.To("dom@itsallbroken.com")
-	mail.From("nigerianprince@justneedshelp.com")
+	mail.From("jsmith@example.com")
 	mail.FromName("Prince Anybody")
 
 	mail.Subject("Business proposition")
@@ -47,7 +47,7 @@ func Example_attachments() {
 	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
 
 	mail.To("dom@itsallbroken.com")
-	mail.From("nigerianprince@justneedshelp.com")
+	mail.From("jsmith@example.com")
 	mail.HTML().Set("I am an email")
 
 	// buf could be anything that implements io.Reader
