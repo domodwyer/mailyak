@@ -103,8 +103,8 @@ func (m *MailYak) writeAttachments(mixed partCreator, splitter writeWrapper) err
 	h := make([]byte, sniffLen)
 
 	for _, item := range m.attachments {
-		hLen, err := item.content.Read(h)
-		if err != nil && err != io.EOF {
+		hLen, err := io.ReadFull(item.content, h)
+		if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
 			return err
 		}
 

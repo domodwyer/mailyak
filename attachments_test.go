@@ -2,6 +2,7 @@ package mailyak
 
 import (
 	"bytes"
+	"encoding/base64"
 	"io"
 	"net/textproto"
 	"strings"
@@ -451,6 +452,51 @@ func TestMailYakWriteAttachments(t *testing.T) {
 			"text/html; charset=utf-8;\n\tfilename=\"name.png\"",
 			"inline;\n\tfilename=\"name.png\"",
 			"PGh0bWw+PGhlYWQ+PC9oZWFkPjwvaHRtbD4=",
+			false,
+		},
+		{
+			"String >512 characters (read full buffer)",
+			[]attachment{
+				{
+					"qed.txt",
+					base64.NewDecoder(base64.StdEncoding, strings.NewReader(
+						"Tm93IGl0IGlzIHN1Y2ggYSBiaXphcnJlbHkgaW1wcm9iYWJsZSBjb2luY2lkZW5jZSB0a"+
+							"GF0IGFueXRoaW5nIHNvIG1pbmQtYm9nZ2xpbmdseSB1c2VmdWwgY291bGQgaGF2ZSBldm"+
+							"9sdmVkIHB1cmVseSBieSBjaGFuY2UgdGhhdCBzb21lIHRoaW5rZXJzIGhhdmUgY2hvc2V"+
+							"uIHRvIHNlZSBpdCBhcyB0aGUgZmluYWwgYW5kIGNsaW5jaGluZyBwcm9vZiBvZiB0aGUg"+
+							"bm9uLWV4aXN0ZW5jZSBvZiBHb2QuIFRoZSBhcmd1bWVudCBnb2VzIHNvbWV0aGluZyBsa"+
+							"WtlIHRoaXM6ICJJIHJlZnVzZSB0byBwcm92ZSB0aGF0IEkgZXhpc3QsIiBzYXlzIEdvZC"+
+							"wgImZvciBwcm9vZiBkZW5pZXMgZmFpdGgsIGFuZCB3aXRob3V0IGZhaXRoIEkgYW0gbm9"+
+							"0aGluZy4iICJCdXQsIiBzYXlzIE1hbiwgIlRoZSBCYWJlbCBmaXNoIGlzIGEgZGVhZCBn"+
+							"aXZlYXdheSwgaXNuJ3QgaXQ/IEl0IGNvdWxkIG5vdCBoYXZlIGV2b2x2ZWQgYnkgY2hhb"+
+							"mNlLiBJdCBwcm92ZXMgeW91IGV4aXN0LCBhbmQgc28gdGhlcmVmb3JlLCBieSB5b3VyIG"+
+							"93biBhcmd1bWVudHMsIHlvdSBkb24ndC4gUUVELiIgIk9oIGRlYXIsIiBzYXlzIEdvZCw"+
+							"gIkkgaGFkbid0IHRob3VnaHQgb2YgdGhhdCwiIGFuZCBwcm9tcHRseSB2YW5pc2hlcyBp"+
+							"biBhIHB1ZmYgb2YgbG9naWMuICJPaCwgdGhhdCB3YXMgZWFzeSwiIHNheXMgTWFuLCBhb"+
+							"mQgZm9yIGFuIGVuY29yZSBnb2VzIG9uIHRvIHByb3ZlIHRoYXQgYmxhY2sgaXMgd2hpdG"+
+							"UgYW5kIGdldHMgaGltc2VsZiBraWxsZWQgb24gdGhlIG5leHQgemVicmEgY3Jvc3Npbmcu",
+					)),
+					false,
+					"",
+				},
+			},
+			"text/plain; charset=utf-8;\n\tfilename=\"qed.txt\"",
+			"attachment;\n\tfilename=\"qed.txt\"",
+			"Tm93IGl0IGlzIHN1Y2ggYSBiaXphcnJlbHkgaW1wcm9iYWJsZSBjb2luY2lkZW5jZSB0a" +
+				"GF0IGFueXRoaW5nIHNvIG1pbmQtYm9nZ2xpbmdseSB1c2VmdWwgY291bGQgaGF2ZSBldm" +
+				"9sdmVkIHB1cmVseSBieSBjaGFuY2UgdGhhdCBzb21lIHRoaW5rZXJzIGhhdmUgY2hvc2V" +
+				"uIHRvIHNlZSBpdCBhcyB0aGUgZmluYWwgYW5kIGNsaW5jaGluZyBwcm9vZiBvZiB0aGUg" +
+				"bm9uLWV4aXN0ZW5jZSBvZiBHb2QuIFRoZSBhcmd1bWVudCBnb2VzIHNvbWV0aGluZyBsa" +
+				"WtlIHRoaXM6ICJJIHJlZnVzZSB0byBwcm92ZSB0aGF0IEkgZXhpc3QsIiBzYXlzIEdvZC" +
+				"wgImZvciBwcm9vZiBkZW5pZXMgZmFpdGgsIGFuZCB3aXRob3V0IGZhaXRoIEkgYW0gbm9" +
+				"0aGluZy4iICJCdXQsIiBzYXlzIE1hbiwgIlRoZSBCYWJlbCBmaXNoIGlzIGEgZGVhZCBn" +
+				"aXZlYXdheSwgaXNuJ3QgaXQ/IEl0IGNvdWxkIG5vdCBoYXZlIGV2b2x2ZWQgYnkgY2hhb" +
+				"mNlLiBJdCBwcm92ZXMgeW91IGV4aXN0LCBhbmQgc28gdGhlcmVmb3JlLCBieSB5b3VyIG" +
+				"93biBhcmd1bWVudHMsIHlvdSBkb24ndC4gUUVELiIgIk9oIGRlYXIsIiBzYXlzIEdvZCw" +
+				"gIkkgaGFkbid0IHRob3VnaHQgb2YgdGhhdCwiIGFuZCBwcm9tcHRseSB2YW5pc2hlcyBp" +
+				"biBhIHB1ZmYgb2YgbG9naWMuICJPaCwgdGhhdCB3YXMgZWFzeSwiIHNheXMgTWFuLCBhb" +
+				"mQgZm9yIGFuIGVuY29yZSBnb2VzIG9uIHRvIHByb3ZlIHRoYXQgYmxhY2sgaXMgd2hpdG" +
+				"UgYW5kIGdldHMgaGltc2VsZiBraWxsZWQgb24gdGhlIG5leHQgemVicmEgY3Jvc3Npbmcu",
 			false,
 		},
 	}
