@@ -2,6 +2,7 @@ package mailyak
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/smtp"
@@ -39,7 +40,7 @@ func TestHTML(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			mail := New("", smtp.PlainAuth("", "", "", ""))
+			mail := New("", smtp.PlainAuth("", "", "", ""), &tls.Config{})
 
 			for _, data := range tt.data {
 				if _, err := io.WriteString(mail.HTML(), data); err != nil {
@@ -75,7 +76,7 @@ func TestPlain(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			mail := New("", smtp.PlainAuth("", "", "", ""))
+			mail := New("", smtp.PlainAuth("", "", "", ""), &tls.Config{})
 
 			if _, err := io.WriteString(mail.Plain(), tt.data); err != nil {
 				t.Fatalf("%q. Plain() error = %v", tt.name, err)
@@ -110,7 +111,7 @@ func TestWritableString(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			mail := New("", smtp.PlainAuth("", "", "", ""))
+			mail := New("", smtp.PlainAuth("", "", "", ""), &tls.Config{})
 
 			if _, err := io.WriteString(mail.Plain(), tt.data); err != nil {
 				t.Fatalf("%q. Plain() error = %v", tt.name, err)
@@ -147,7 +148,7 @@ func TestPlain_String(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			mail := New("", smtp.PlainAuth("", "", "", ""))
+			mail := New("", smtp.PlainAuth("", "", "", ""), &tls.Config{})
 
 			if _, err := io.WriteString(mail.Plain(), tt.data); err != nil {
 				t.Fatalf("%q. Plain() error = %v", tt.name, err)

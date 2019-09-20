@@ -4,6 +4,7 @@ package mailyak
 
 import (
 	"bytes"
+	"crypto/tls"
 	"io"
 	"net/smtp"
 	"text/template"
@@ -11,7 +12,7 @@ import (
 
 func Example() {
 	// Create a new email - specify the SMTP host and auth
-	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
+	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"), &tls.Config{})
 
 	mail.To("dom@itsallbroken.com")
 	mail.From("jsmith@example.com")
@@ -44,7 +45,7 @@ func Example_attachments() {
 	io.WriteString(buf, "We're in the stickiest situation since Sticky the Stick Insect got stuck on a sticky bun.")
 
 	// Create a new email - specify the SMTP host and auth
-	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
+	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"), &tls.Config{})
 
 	mail.To("dom@itsallbroken.com")
 	mail.From("jsmith@example.com")
@@ -60,7 +61,7 @@ func Example_attachments() {
 
 func ExampleBodyPart_string() {
 	// Create a new email - specify the SMTP host and auth
-	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
+	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"), &tls.Config{})
 
 	// Set the plain text email content using a string
 	mail.Plain().Set("Get a real email client")
@@ -68,7 +69,7 @@ func ExampleBodyPart_string() {
 
 func ExampleBodyPart_templates() {
 	// Create a new email
-	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
+	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"), &tls.Config{})
 
 	// Our pretend template data
 	tmplData := struct {

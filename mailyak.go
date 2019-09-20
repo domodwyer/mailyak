@@ -2,6 +2,7 @@ package mailyak
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"net/smtp"
 	"regexp"
@@ -31,6 +32,7 @@ type MailYak struct {
 	host           string
 	writeBccHeader bool
 	date           string
+	tls            *tls.Config
 }
 
 // New returns an instance of MailYak using host as the SMTP server, and
@@ -45,7 +47,7 @@ type MailYak struct {
 // 			"stmp.itsallbroken.com",
 //		))
 //
-func New(host string, auth smtp.Auth) *MailYak {
+func New(host string, auth smtp.Auth, tls *tls.Config) *MailYak {
 	return &MailYak{
 		headers:        map[string]string{},
 		host:           host,
@@ -53,6 +55,7 @@ func New(host string, auth smtp.Auth) *MailYak {
 		trimRegex:      regexp.MustCompile("\r?\n"),
 		writeBccHeader: false,
 		date:           time.Now().Format(time.RFC1123Z),
+		tls:            tls,
 	}
 }
 
@@ -66,13 +69,48 @@ func (m *MailYak) Send() error {
 		return err
 	}
 
-	return smtp.SendMail(
-		m.host,
-		m.auth,
-		m.fromAddr,
-		append(append(m.toAddrs, m.ccAddrs...), m.bccAddrs...),
-		buf.Bytes(),
-	)
+	client, dialErr := smtp.Dial(m.host)
+	if dialErr != nil {
+		return dialErr
+	}
+	defer client.Close()
+
+	tlsErr := client.StartTLS(m.tls)
+	if tlsErr != nil {
+		return tlsErr
+	}
+
+	if m.auth != nil {
+		authErr := client.Auth(m.auth)
+		if authErr != nil {
+			return authErr
+		}
+	}
+
+	if err := client.Mail(m.fromAddr); err != nil {
+		return err
+	}
+
+	for _, rcpt := range append(append(m.toAddrs, m.ccAddrs...), m.bccAddrs...) {
+		if err := client.Rcpt(rcpt); err != nil {
+			return err
+		}
+	}
+
+	writer, dErr := client.Data()
+	if dErr != nil {
+		return dErr
+	}
+
+	_, wErr := writer.Write(buf.Bytes())
+	if wErr != nil {
+		return wErr
+	}
+
+	if err := client.Quit(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // MimeBuf returns the buffer containing all the RAW MIME data.
