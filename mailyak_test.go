@@ -1,7 +1,6 @@
 package mailyak
 
 import (
-	"crypto/tls"
 	"fmt"
 	"net/smtp"
 	"strings"
@@ -12,7 +11,7 @@ import (
 func TestMailYakStringer(t *testing.T) {
 	t.Parallel()
 
-	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"), &tls.Config{})
+	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
 	mail.From("from@example.org")
 	mail.FromName("From Example")
 	mail.To("to@example.org")

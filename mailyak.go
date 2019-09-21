@@ -47,7 +47,7 @@ type MailYak struct {
 // 			"stmp.itsallbroken.com",
 //		))
 //
-func New(host string, auth smtp.Auth, tls *tls.Config) *MailYak {
+func New(host string, auth smtp.Auth) *MailYak {
 	return &MailYak{
 		headers:        map[string]string{},
 		host:           host,
@@ -55,7 +55,7 @@ func New(host string, auth smtp.Auth, tls *tls.Config) *MailYak {
 		trimRegex:      regexp.MustCompile("\r?\n"),
 		writeBccHeader: false,
 		date:           time.Now().Format(time.RFC1123Z),
-		tls:            tls,
+		tls:            &tls.Config{ServerName:host},
 	}
 }
 
