@@ -59,6 +59,30 @@ func New(host string, auth smtp.Auth, tls *tls.Config) *MailYak {
 	}
 }
 
+// NewWithTLS returns an instance of MailYak using host as the SMTP server, and
+// authenticating with auth where required and also TLS configuration
+//
+// host must include the port number (i.e. "smtp.itsallbroken.com:25")
+//
+// 		mail := mailyak.NewWithTLS("smtp.itsallbroken.com:25", smtp.PlainAuth(
+// 			"",
+// 			"username",
+// 			"password",
+// 			"stmp.itsallbroken.com",
+//		), &tls.Config{InsecureSkipVerify: true})
+//
+func NewWithTLS(host string, auth smtp.Auth, tlsConfig *tls.Config) *MailYak {
+	return &MailYak{
+		headers:        map[string]string{},
+		host:           host,
+		auth:           auth,
+		trimRegex:      regexp.MustCompile("\r?\n"),
+		writeBccHeader: false,
+		date:           time.Now().Format(time.RFC1123Z),
+		tls:            tlsConfig,
+	}
+}
+
 // Send attempts to send the built email via the configured SMTP server.
 //
 // Attachments are read when Send() is called, and any connection/authentication
@@ -69,12 +93,13 @@ func (m *MailYak) Send() error {
 		return err
 	}
 
-	return SendMail(
+	return sendMail(
 		m.host,
 		m.auth,
 		m.fromAddr,
 		append(append(m.toAddrs, m.ccAddrs...), m.bccAddrs...),
 		buf.Bytes(),
+		m.tls,
 	)
 }
 

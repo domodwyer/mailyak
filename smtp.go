@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package smtp implements the Simple Mail Transfer Protocol as defined in RFC 5321.
+// Package smtp implements the Simple mail Transfer Protocol as defined in RFC 5321.
 // It also implements the following extensions:
 //	8BITMIME  RFC 1652
 //	AUTH      RFC 2554
@@ -47,20 +47,20 @@ type Client struct {
 	helloError error  // the error from the hello
 }
 
-// Dial returns a new Client connected to an SMTP server at addr.
+// dial returns a new Client connected to an SMTP server at addr.
 // The addr must include a port, as in "mail.example.com:smtp".
-func Dial(addr string) (*Client, error) {
+func dial(addr string) (*Client, error) {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		return nil, err
 	}
 	host, _, _ := net.SplitHostPort(addr)
-	return NewClient(conn, host)
+	return newClient(conn, host)
 }
 
-// NewClient returns a new Client using an existing connection and host as a
+// newClient returns a new Client using an existing connection and host as a
 // server name to be used when authenticating.
-func NewClient(conn net.Conn, host string) (*Client, error) {
+func newClient(conn net.Conn, host string) (*Client, error) {
 	text := textproto.NewConn(conn)
 	_, _, err := text.ReadResponse(220)
 	if err != nil {
@@ -194,10 +194,10 @@ func (c *Client) Verify(addr string) error {
 	return err
 }
 
-// Auth authenticates a client using the provided authentication mechanism.
+// authorize authenticates a client using the provided authentication mechanism.
 // A failed authentication closes the connection.
 // Only servers that advertise the AUTH extension support this function.
-func (c *Client) Auth(a smtp.Auth) error {
+func (c *Client) authorize(a smtp.Auth) error {
 	if err := c.hello(); err != nil {
 		return err
 	}
@@ -240,11 +240,11 @@ func (c *Client) Auth(a smtp.Auth) error {
 	return err
 }
 
-// Mail issues a MAIL command to the server using the provided email address.
-// If the server supports the 8BITMIME extension, Mail adds the BODY=8BITMIME
+// mail issues a MAIL command to the server using the provided email address.
+// If the server supports the 8BITMIME extension, mail adds the BODY=8BITMIME
 // parameter.
-// This initiates a mail transaction and is followed by one or more Rcpt calls.
-func (c *Client) Mail(from string) error {
+// This initiates a mail transaction and is followed by one or more rcpt calls.
+func (c *Client) mail(from string) error {
 	if err := validateLine(from); err != nil {
 		return err
 	}
@@ -261,10 +261,10 @@ func (c *Client) Mail(from string) error {
 	return err
 }
 
-// Rcpt issues a RCPT command to the server using the provided email address.
-// A call to Rcpt must be preceded by a call to Mail and may be followed by
-// a Data call or another Rcpt call.
-func (c *Client) Rcpt(to string) error {
+// rcpt issues a RCPT command to the server using the provided email address.
+// A call to rcpt must be preceded by a call to mail and may be followed by
+// a data call or another rcpt call.
+func (c *Client) rcpt(to string) error {
 	if err := validateLine(to); err != nil {
 		return err
 	}
@@ -283,11 +283,11 @@ func (d *dataCloser) Close() error {
 	return err
 }
 
-// Data issues a DATA command to the server and returns a writer that
+// data issues a DATA command to the server and returns a writer that
 // can be used to write the mail headers and body. The caller should
 // close the writer before calling any more methods on c. A call to
-// Data must be preceded by one or more calls to Rcpt.
-func (c *Client) Data() (io.WriteCloser, error) {
+// data must be preceded by one or more calls to rcpt.
+func (c *Client) data() (io.WriteCloser, error) {
 	_, _, err := c.cmd(354, "DATA")
 	if err != nil {
 		return nil, err
@@ -297,7 +297,7 @@ func (c *Client) Data() (io.WriteCloser, error) {
 
 var testHookStartTLS func(*tls.Config) // nil, except for tests
 
-// SendMail connects to the server at addr, switches to TLS if
+// sendMail connects to the server at addr, switches to TLS if
 // possible, authenticates with the optional mechanism a if possible,
 // and then sends an email from address from, to addresses to, with
 // message msg.
@@ -312,12 +312,12 @@ var testHookStartTLS func(*tls.Config) // nil, except for tests
 // messages is accomplished by including an email address in the to
 // parameter but not including it in the msg headers.
 //
-// The SendMail function and the net/smtp package are low-level
+// The sendMail function and the net/smtp package are low-level
 // mechanisms and provide no support for DKIM signing, MIME
 // attachments (see the mime/multipart package), or other mail
 // functionality. Higher-level packages exist outside of the standard
 // library.
-func SendMail(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
+func sendMail(addr string, a smtp.Auth, from string, to []string, msg []byte, config *tls.Config) error {
 	if err := validateLine(from); err != nil {
 		return err
 	}
@@ -326,7 +326,7 @@ func SendMail(addr string, a smtp.Auth, from string, to []string, msg []byte) er
 			return err
 		}
 	}
-	c, err := Dial(addr)
+	c, err := dial(addr)
 	if err != nil {
 		return err
 	}
@@ -347,19 +347,19 @@ func SendMail(addr string, a smtp.Auth, from string, to []string, msg []byte) er
 		if _, ok := c.ext["AUTH"]; !ok {
 			return errors.New("smtp: server doesn't support AUTH")
 		}
-		if err = c.Auth(a); err != nil {
+		if err = c.authorize(a); err != nil {
 			return err
 		}
 	}
-	if err = c.Mail(from); err != nil {
+	if err = c.mail(from); err != nil {
 		return err
 	}
 	for _, addr := range to {
-		if err = c.Rcpt(addr); err != nil {
+		if err = c.rcpt(addr); err != nil {
 			return err
 		}
 	}
-	w, err := c.Data()
+	w, err := c.data()
 	if err != nil {
 		return err
 	}
