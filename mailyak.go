@@ -69,48 +69,13 @@ func (m *MailYak) Send() error {
 		return err
 	}
 
-	client, dialErr := smtp.Dial(m.host)
-	if dialErr != nil {
-		return dialErr
-	}
-	defer client.Close()
-
-	tlsErr := client.StartTLS(m.tls)
-	if tlsErr != nil {
-		return tlsErr
-	}
-
-	if m.auth != nil {
-		authErr := client.Auth(m.auth)
-		if authErr != nil {
-			return authErr
-		}
-	}
-
-	if err := client.Mail(m.fromAddr); err != nil {
-		return err
-	}
-
-	for _, rcpt := range append(append(m.toAddrs, m.ccAddrs...), m.bccAddrs...) {
-		if err := client.Rcpt(rcpt); err != nil {
-			return err
-		}
-	}
-
-	writer, dErr := client.Data()
-	if dErr != nil {
-		return dErr
-	}
-
-	_, wErr := writer.Write(buf.Bytes())
-	if wErr != nil {
-		return wErr
-	}
-
-	if err := client.Quit(); err != nil {
-		return err
-	}
-	return nil
+	return SendMail(
+		m.host,
+		m.auth,
+		m.fromAddr,
+		append(append(m.toAddrs, m.ccAddrs...), m.bccAddrs...),
+		buf.Bytes(),
+	)
 }
 
 // MimeBuf returns the buffer containing all the RAW MIME data.
