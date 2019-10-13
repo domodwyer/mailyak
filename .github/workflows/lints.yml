@@ -1,0 +1,14 @@
+name: Lint
+on: [push]
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    
+    name: golangci-lint
+    steps:
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
+
+    - name: Run golangci-lint
+      run: docker run --rm -v $(pwd):/app -w /app golangci/golangci-lint:v1.20.0 golangci-lint run -v

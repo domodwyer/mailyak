@@ -49,7 +49,7 @@ func TestHTML(t *testing.T) {
 			}
 
 			if !bytes.Equal([]byte(strings.Join(tt.data, "")), mail.html.Bytes()) {
-				t.Errorf("%q. HTML() = %v, want %v", tt.name, string(mail.html.Bytes()), tt.data)
+				t.Errorf("%q. HTML() = %v, want %v", tt.name, mail.html.String(), tt.data)
 			}
 		})
 	}
@@ -82,7 +82,7 @@ func TestPlain(t *testing.T) {
 			}
 
 			if !bytes.Equal([]byte(tt.data), mail.plain.Bytes()) {
-				t.Errorf("%q. Plain() = %v, want %v", tt.name, string(mail.plain.Bytes()), tt.data)
+				t.Errorf("%q. Plain() = %v, want %v", tt.name, mail.plain.String(), tt.data)
 			}
 		})
 	}
@@ -154,7 +154,7 @@ func TestPlain_String(t *testing.T) {
 			}
 
 			if !bytes.Equal([]byte(tt.data), mail.plain.Bytes()) {
-				t.Errorf("%q. Plain() = %v, want %v", tt.name, string(mail.plain.Bytes()), tt.data)
+				t.Errorf("%q. Plain() = %v, want %v", tt.name, mail.plain.String(), tt.data)
 			}
 		})
 	}
