@@ -1,0 +1,24 @@
+name: Go
+on: [push]
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        go: [ '1.8', '1.9.x', '1.10.x', '1.11.x', '1.12.x', '1.13.x' ]
+    
+    name: Unit test (Go ${{ matrix.go }})
+    steps:
+    - name: Set up Go ${{ matrix.go }}
+      uses: actions/setup-go@v1
+      with:
+        go-version: ${{ matrix.go }}
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
+
+    - name: Test
+      run: go test ./... -v
