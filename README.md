@@ -72,4 +72,4 @@ if err := mail.Send(); err != nil {
 - Why "MailYak"? Because "MailyMcMailFace" is annoyingly long to type.
 - You can use a single instance of mailyak to send multiple emails after changing the to/body/whatever fields, avoiding unnecessary allocation/GC pressure.
 - Attachments are read when you call `Send()` to prevent holding onto multiple copies of the attachment in memory (source and email) - this means changing the attachment data between calling `Attach()` and `Send()` will change what's emailed out!
-- For your own sanity you should vendor this, and any other libraries when going into production, I recommend [govendor](https://github.com/kardianos/govendor).
+- For your own sanity you should vendor this, and any other libraries when going into production.

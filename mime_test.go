@@ -189,7 +189,9 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			}
 
 			buf := &bytes.Buffer{}
-			m.writeHeaders(buf)
+			if err := m.writeHeaders(buf); err != nil {
+				t.Fatal(err)
+			}
 
 			if gotBuf := buf.String(); gotBuf != tt.wantBuf {
 				t.Errorf("%q. MailYak.writeHeaders() = %v, want %v", tt.name, gotBuf, tt.wantBuf)
