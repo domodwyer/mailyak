@@ -2,7 +2,9 @@ package mailyak
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
+	"net"
 	"net/smtp"
 	"regexp"
 	"strings"
@@ -73,6 +75,60 @@ func (m *MailYak) Send() error {
 		append(append(m.toAddrs, m.ccAddrs...), m.bccAddrs...),
 		buf.Bytes(),
 	)
+}
+
+// SendForcingTls attempts to send the built email using TLS from the outset.
+// This is useful if outbound port 25 is blocked and you know that the server
+// supports TLS. Provide your own TLS config or omit to use default value.
+//
+// Attachments are read when SendForcingTls() is called, and any connection/authentication
+// errors will be returned by SendForcingTls().
+func (m *MailYak) SendForcingTls(config ...*tls.Config) error {
+	buf, err := m.buildMime()
+	if err != nil {
+		return err
+	}
+	hostName, _, err := net.SplitHostPort(m.host)
+	if err != nil {
+		return err
+	}
+
+	var tlsConfig *tls.Config
+	if len(config) > 0 {
+		tlsConfig = config[0]
+	} else {
+		tlsConfig = &tls.Config{ServerName: hostName}
+	}
+	conn, err := tls.Dial("tcp", m.host, tlsConfig)
+	if err != nil {
+		return err
+	}
+	c, err := smtp.NewClient(conn, hostName)
+	if err != nil {
+		return err
+	}
+	defer c.Quit()
+	if err = c.Auth(m.auth); err != nil {
+		return err
+	}
+	if err = c.Mail(m.fromAddr); err != nil {
+		return err
+	}
+	for _, to := range m.toAddrs {
+		if err = c.Rcpt(to); err != nil {
+			return err
+		}
+	}
+	w, err := c.Data()
+	if err != nil {
+		return err
+	}
+	defer w.Close()
+	_, err = w.Write(buf.Bytes())
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // MimeBuf returns the buffer containing all the RAW MIME data.
