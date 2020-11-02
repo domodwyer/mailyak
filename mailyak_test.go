@@ -5,6 +5,7 @@ import (
 	"net/smtp"
 	"strings"
 	"testing"
+	"time"
 )
 
 // TestMailYakStringer ensures MailYak struct conforms to the Stringer interface.
@@ -31,5 +32,29 @@ func TestMailYakStringer(t *testing.T) {
 	got := fmt.Sprintf("%+v", mail)
 	if got != want {
 		t.Errorf("MailYak.String() = %v, want %v", got, want)
+	}
+}
+
+// TestMailYakDate ensures two emails sent with the same MailYak instance use
+// different (updated) date timestamps.
+func TestMailYakDate(t *testing.T) {
+	t.Parallel()
+
+	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
+	mail.From("from@example.org")
+	mail.To("to@example.org")
+	mail.Subject("Test subject")
+
+	// send two emails at different times (discard any errors)
+	mail.Send()
+	dateOne := mail.date
+
+	time.Sleep(1 * time.Second)
+
+	mail.Send()
+	dateTwo := mail.date
+
+	if dateOne == dateTwo {
+		t.Errorf("MailYak.Send(): timestamp not updated: %v", dateOne)
 	}
 }
