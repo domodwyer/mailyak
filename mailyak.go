@@ -33,6 +33,9 @@ type MailYak struct {
 	date           string
 }
 
+// Email Date timestamp format
+const mailDateFormat = time.RFC1123Z
+
 // New returns an instance of MailYak using host as the SMTP server, and
 // authenticating with auth where required.
 //
@@ -52,7 +55,7 @@ func New(host string, auth smtp.Auth) *MailYak {
 		auth:           auth,
 		trimRegex:      regexp.MustCompile("\r?\n"),
 		writeBccHeader: false,
-		date:           time.Now().Format(time.RFC1123Z),
+		date:           time.Now().Format(mailDateFormat),
 	}
 }
 
@@ -60,7 +63,9 @@ func New(host string, auth smtp.Auth) *MailYak {
 //
 // Attachments are read when Send() is called, and any connection/authentication
 // errors will be returned by Send().
+// Upon sending, the date timestamp will be updated to the current time.
 func (m *MailYak) Send() error {
+	m.date = time.Now().Format(mailDateFormat)
 	buf, err := m.buildMime()
 	if err != nil {
 		return err
@@ -80,6 +85,7 @@ func (m *MailYak) Send() error {
 // MimeBuf is typically used with an API service such as Amazon SES that does
 // not use an SMTP interface.
 func (m *MailYak) MimeBuf() (*bytes.Buffer, error) {
+	m.date = time.Now().Format(mailDateFormat)
 	buf, err := m.buildMime()
 	if err != nil {
 		return nil, err
