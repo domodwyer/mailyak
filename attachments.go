@@ -43,7 +43,7 @@ func (m *MailYak) Attach(name string, r io.Reader) {
 // name as the filename and mimeType as the specified MIME type of the content.
 // It is up to the user to ensure the mimeType is correct.
 //
-// r is not read until Send is called
+// r is not read until Send is called.
 func (m *MailYak) AttachWithMimeType(name string, r io.Reader, mimeType string) {
 	m.attachments = append(m.attachments, attachment{
 		filename: name,

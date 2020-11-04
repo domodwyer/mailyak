@@ -43,7 +43,7 @@ type MailYak struct {
 const mailDateFormat = time.RFC1123Z
 
 // New returns an instance of MailYak using host as the SMTP server, and
-// authenticating with auth if non-nil.
+// authenticating with auth.
 //
 // host must include the port number (i.e. "smtp.itsallbroken.com:25")
 //
@@ -70,7 +70,7 @@ func New(host string, auth smtp.Auth) *MailYak {
 }
 
 // NewWithTLS returns an instance of MailYak using host as the SMTP server over
-// an explicit TLS connection, and authenticating with auth if non-nil.
+// an explicit TLS connection, and authenticating with auth.
 //
 // host must include the port number (i.e. "smtp.itsallbroken.com:25")
 //
