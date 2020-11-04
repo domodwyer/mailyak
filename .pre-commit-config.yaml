@@ -34,7 +34,7 @@ repos:
         args: ["-timeout=30s"]
       
       - id: go-goimports
-        stages: [commit, manual]
+        stages: [commit]
         types: [go]
       
       - id: go-golangci-lint
