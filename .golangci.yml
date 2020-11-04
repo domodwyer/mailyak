@@ -57,3 +57,8 @@ issues:
         - gocyclo
         - errcheck
         - gosec
+    
+    # No need for this - errcheck does it.
+    - linters:
+        - gosec
+      text: "G104: Errors unhandled"
