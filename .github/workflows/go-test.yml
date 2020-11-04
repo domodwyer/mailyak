@@ -1,5 +1,10 @@
-name: Unit tests
-on: [push]
+name: unit tests
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
 jobs:
 
   build:
@@ -7,7 +12,15 @@ jobs:
 
     strategy:
       matrix:
-        go: [ '1.8', '1.9.x', '1.10.x', '1.11.x', '1.12.x', '1.13.x' ]
+        go: 
+          - '1.8'
+          - '1.9.x'
+          - '1.10.x'
+          - '1.11.x'
+          - '1.12.x'
+          - '1.13.x'
+          - '1.14.x'
+          - '1.15.x'
     
     name: Go ${{ matrix.go }}
     steps:

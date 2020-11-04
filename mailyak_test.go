@@ -45,13 +45,13 @@ func TestMailYakDate(t *testing.T) {
 	mail.To("to@example.org")
 	mail.Subject("Test subject")
 
-	// send two emails at different times (discard any errors)
-	mail.Send()
+	// send two emails at different times (discarding any errors)
+	_ = mail.Send()
 	dateOne := mail.date
 
 	time.Sleep(1 * time.Second)
 
-	mail.Send()
+	_ = mail.Send()
 	dateTwo := mail.date
 
 	if dateOne == dateTwo {

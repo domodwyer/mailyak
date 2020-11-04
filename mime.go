@@ -52,22 +52,31 @@ func (m *MailYak) buildMimeWithBoundaries(mb, ab string) (*bytes.Buffer, error) 
 	if err := mixed.SetBoundary(mb); err != nil {
 		return nil, err
 	}
-	defer mixed.Close()
 
-	fmt.Fprintf(&buf, "Content-Type: multipart/mixed;\r\n\tboundary=\"%s\"; charset=UTF-8\r\n\r\n", mixed.Boundary())
+	// To avoid deferring a mixed.Close(), run the write in a closure and
+	// close the mixed after.
+	tryWrite := func() error {
+		fmt.Fprintf(&buf, "Content-Type: multipart/mixed;\r\n\tboundary=\"%s\"; charset=UTF-8\r\n\r\n", mixed.Boundary())
 
-	ctype := fmt.Sprintf("multipart/alternative;\r\n\tboundary=\"%s\"", ab)
+		ctype := fmt.Sprintf("multipart/alternative;\r\n\tboundary=\"%s\"", ab)
 
-	altPart, err := mixed.CreatePart(textproto.MIMEHeader{"Content-Type": {ctype}})
-	if err != nil {
+		altPart, err := mixed.CreatePart(textproto.MIMEHeader{"Content-Type": {ctype}})
+		if err != nil {
+			return err
+		}
+
+		if err := m.writeBody(altPart, ab); err != nil {
+			return err
+		}
+
+		return m.writeAttachments(mixed, lineSplitterBuilder{})
+	}
+
+	if err := tryWrite(); err != nil {
 		return nil, err
 	}
 
-	if err := m.writeBody(altPart, ab); err != nil {
-		return nil, err
-	}
-
-	if err := m.writeAttachments(mixed, lineSplitterBuilder{}); err != nil {
+	if err := mixed.Close(); err != nil {
 		return nil, err
 	}
 
@@ -128,7 +137,6 @@ func (m *MailYak) fromHeader() string {
 // writeBody writes the text/plain and text/html mime parts.
 func (m *MailYak) writeBody(w io.Writer, boundary string) error {
 	alt := multipart.NewWriter(w)
-	defer alt.Close()
 
 	if err := alt.SetBoundary(boundary); err != nil {
 		return err
@@ -150,14 +158,20 @@ func (m *MailYak) writeBody(w io.Writer, boundary string) error {
 
 		var buf bytes.Buffer
 		qpw := quotedprintable.NewWriter(&buf)
-		_, err = qpw.Write(data)
-		qpw.Close()
+		_, _ = qpw.Write(data)
+		_ = qpw.Close()
 
 		_, err = part.Write(buf.Bytes())
 	}
 
 	writePart("text/plain", m.plain.Bytes())
 	writePart("text/html", m.html.Bytes())
+
+	// If closing the alt fails, and there's not already an error set, return the
+	// close error.
+	if closeErr := alt.Close(); err == nil && closeErr != nil {
+		return closeErr
+	}
 
 	return err
 }
