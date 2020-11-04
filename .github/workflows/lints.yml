@@ -1,4 +1,4 @@
-name: pre-commit
+name: lints
 
 on:
   pull_request:
