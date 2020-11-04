@@ -9,9 +9,6 @@ import (
 	"time"
 )
 
-// TODO: in the future, when aliasing is supported or we're making a breaking
-// API change anyway, change the MailYak struct name to Email.
-
 // MailYak represents an email.
 type MailYak struct {
 	html  BodyPart
