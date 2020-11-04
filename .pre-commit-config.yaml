@@ -1,3 +1,5 @@
+# When running in CI, the "manual" stage is run.
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.5.0
@@ -37,7 +39,7 @@ repos:
       
       - id: go-golangci-lint
         args: [--new-from-rev=origin/master]
-        stages: [commit, push, manual]
+        stages: [commit, push]
         types: [go]
       
       - id: todo-tags
