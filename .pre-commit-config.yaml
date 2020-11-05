@@ -23,7 +23,7 @@ repos:
       
       - id: no-commit-to-branch
         args: ["--branch", "master", "--branch", "development"]
-        stages: [commit, manual]
+        stages: [commit]
 
   - repo: https://github.com/domodwyer/pre-commit
     rev: v3.0.1
