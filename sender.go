@@ -1,7 +1,9 @@
 package mailyak
 
 import (
+	"bufio"
 	"io"
+	"net"
 	"net/smtp"
 )
 
@@ -29,4 +31,55 @@ type sendableMail interface {
 	// The emailSender implementation is responsible for providing appropriate
 	// buffering of writes.
 	buildMime(w io.Writer) error
+}
+
+// smtpExchange performs the SMTP protocol conversation necessary to send m over
+// conn.
+//
+// serverName must be the hostname (or IP address) of the remote endpoint.
+func smtpExchange(m sendableMail, conn net.Conn, serverName string) error {
+	// Connect to the SMTP server
+	c, err := smtp.NewClient(conn, serverName)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = c.Quit() }()
+
+	// Attempt to authenticate if credentials were provided
+	var nilAuth smtp.Auth
+	if auth := m.getAuth(); auth != nilAuth {
+		if err = c.Auth(auth); err != nil {
+			return err
+		}
+	}
+
+	// Set the from address
+	if err = c.Mail(m.getFromAddr()); err != nil {
+		return err
+	}
+
+	// Add all the recipients
+	for _, to := range m.getToAddrs() {
+		if err = c.Rcpt(to); err != nil {
+			return err
+		}
+	}
+
+	// Start the data session and write the email body
+	dataSession, err := c.Data()
+	if err != nil {
+		return err
+	}
+
+	// Wrap the socket in a small buffer (~4k) to avoid making lots of small
+	// syscalls and therefore reducing CPU usage.
+	buf := bufio.NewWriter(dataSession)
+	if err := m.buildMime(buf); err != nil {
+		return err
+	}
+	if err := buf.Flush(); err != nil {
+		return err
+	}
+
+	return dataSession.Close()
 }

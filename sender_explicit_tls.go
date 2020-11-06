@@ -1,10 +1,8 @@
 package mailyak
 
 import (
-	"bufio"
 	"crypto/tls"
 	"net"
-	"net/smtp"
 )
 
 // senderExplicitTLS connects to a SMTP server over a TLS connection, performs a
@@ -26,50 +24,9 @@ func (s *senderExplicitTLS) Send(m sendableMail) error {
 	}
 	defer func() { _ = conn.Close() }()
 
-	// Connect to the SMTP server
-	c, err := smtp.NewClient(conn, s.hostname)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = c.Quit() }()
-
-	// Attempt to authenticate if credentials were provided
-	var nilAuth smtp.Auth
-	if auth := m.getAuth(); auth != nilAuth {
-		if err = c.Auth(auth); err != nil {
-			return err
-		}
-	}
-
-	// Set the from address
-	if err = c.Mail(m.getFromAddr()); err != nil {
-		return err
-	}
-
-	// Add all the recipients
-	for _, to := range m.getToAddrs() {
-		if err = c.Rcpt(to); err != nil {
-			return err
-		}
-	}
-
-	// Start the data session and write the email body
-	w, err := c.Data()
-	if err != nil {
-		return err
-	}
-
-	// Wrap the socket in a small buffer (~4k) and write it to the socket
-	// directly, rather than holding the full MIME message in memory.
-	buf := bufio.NewWriter(w)
-	if err := m.buildMime(buf); err != nil {
-		return err
-	}
-	if err := buf.Flush(); err != nil {
-		return err
-	}
-
-	return w.Close()
+	// Perform the SMTP protocol conversation, using the provided TLS ServerName
+	// as the SMTP server name.
+	return smtpExchange(m, conn, s.hostname)
 }
 
 // newSenderWithExplicitTLS constructs a new senderExplicitTLS.
