@@ -104,8 +104,8 @@ func NewWithTLS(host string, auth smtp.Auth, tlsConfig *tls.Config) (*MailYak, e
 	// Construct a default MailYak instance
 	m := New(host, auth)
 
-	// Initialise the TLS sender with the (potentially nil) TLS config,
-	// swapping it with the default STARTTLS sender.
+	// Initialise the TLS sender with the TLS config, swapping it with the
+	// default STARTTLS sender.
 	m.sender = newSenderWithExplicitTLS(tlsConfig)
 
 	return m, nil
