@@ -10,7 +10,10 @@ import (
 )
 
 func Example() {
-	// Create a new email - specify the SMTP host and auth
+	// Create a new email - specify the SMTP host:port and auth (or nil if not
+	// needed).
+	//
+	// If you want to connect using TLS, use NewWithTLS() instead.
 	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
 
 	mail.To("dom@itsallbroken.com")
@@ -43,14 +46,16 @@ func Example_attachments() {
 	buf := &bytes.Buffer{}
 	_, _ = io.WriteString(buf, "We're in the stickiest situation since Sticky the Stick Insect got stuck on a sticky bun.")
 
-	// Create a new email - specify the SMTP host and auth
+	// Create a new email - specify the SMTP host:port and auth (or nil if not
+	// needed).
 	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
 
 	mail.To("dom@itsallbroken.com")
 	mail.From("jsmith@example.com")
 	mail.HTML().Set("I am an email")
 
-	// buf could be anything that implements io.Reader
+	// buf could be anything that implements io.Reader, like a file on disk or
+	// an in-memory buffer.
 	mail.Attach("sticky.txt", buf)
 
 	if err := mail.Send(); err != nil {
@@ -64,6 +69,24 @@ func ExampleBodyPart_string() {
 
 	// Set the plain text email content using a string
 	mail.Plain().Set("Get a real email client")
+}
+
+func ExampleNewWithTLS() {
+	// Create a new MailYak instance that uses an explicit TLS connection. This
+	// ensures no communication is performed in plain-text.
+	//
+	// Specify the SMTP host:port to connect to, the authentication credentials
+	// (or nil if not needed), and use an automatically generated TLS
+	// configuration by passing nil as the tls.Config argument.
+	mail, err := NewWithTLS("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"), nil)
+	if err != nil {
+		panic("failed to initialise a TLS instance :(")
+	}
+
+	mail.Plain().Set("Have some encrypted goodness")
+	if err := mail.Send(); err != nil {
+		panic(" :( ")
+	}
 }
 
 func ExampleBodyPart_templates() {
@@ -83,6 +106,38 @@ func ExampleBodyPart_templates() {
 
 	// Execute the template directly into the email body
 	if err := tmpl.Execute(mail.HTML(), tmplData); err != nil {
+		panic(" :( ")
+	}
+}
+
+func ExampleMailYak_AttachInline() {
+	// Create a new email
+	mail := New("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"))
+	mail.To("dom@itsallbroken.com")
+	mail.From("jsmith@example.com")
+
+	// Initialise an io.Reader that contains your image (typically read from
+	// disk, or embedded in memory).
+	//
+	// Here we use an empty buffer as a mock.
+	imageBuffer := &bytes.Buffer{}
+
+	// Add the image as an attachment.
+	//
+	// To reference it, use the name as the cid value.
+	mail.AttachInline("myimage", imageBuffer)
+
+	// Set the HTML body, which includes the inline CID reference.
+	mail.HTML().Set(`
+		<html>
+		<body>
+			<img src="cid:myimage"/>
+		</body>
+		</html>
+	`)
+
+	// Send it!
+	if err := mail.Send(); err != nil {
 		panic(" :( ")
 	}
 }
