@@ -427,13 +427,14 @@ func TestMailYakBuildMime(t *testing.T) {
 			m.HTML().Write(tt.rHTML)
 			m.Plain().Write(tt.rPlain)
 
-			got, err := m.buildMimeWithBoundaries("mixed", "alt")
+			buf := &bytes.Buffer{}
+			err := m.buildMimeWithBoundaries(buf, "mixed", "alt")
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("%q. MailYak.buildMime() error = %v, wantErr %v", tt.name, err, tt.wantErr)
 			}
 
-			if got.String() != tt.want {
-				t.Errorf("%q. MailYak.buildMime() = %v, want %v", tt.name, got, tt.want)
+			if buf.String() != tt.want {
+				t.Errorf("%q. MailYak.buildMime() = %v, want %v", tt.name, buf.String(), tt.want)
 			}
 		})
 	}
@@ -555,13 +556,14 @@ func TestMailYakBuildMime_withAttachments(t *testing.T) {
 			m.HTML().Write(tt.rHTML)
 			m.Plain().Write(tt.rPlain)
 
-			got, err := m.buildMimeWithBoundaries("mixed", "alt")
+			buf := &bytes.Buffer{}
+			err := m.buildMimeWithBoundaries(buf, "mixed", "alt")
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("%q. MailYak.buildMime() error = %v, wantErr %v", tt.name, err, tt.wantErr)
 			}
 
 			seen := 0
-			mr := multipart.NewReader(got, "mixed")
+			mr := multipart.NewReader(buf, "mixed")
 
 			// Itterate over the mime parts, look for attachments
 			for {
