@@ -4,6 +4,7 @@ package mailyak
 
 import (
 	"bytes"
+	"crypto/tls"
 	"io"
 	"net/smtp"
 	"text/template"
@@ -79,6 +80,38 @@ func ExampleNewWithTLS() {
 	// (or nil if not needed), and use an automatically generated TLS
 	// configuration by passing nil as the tls.Config argument.
 	mail, err := NewWithTLS("mail.host.com:25", smtp.PlainAuth("", "user", "pass", "mail.host.com"), nil)
+	if err != nil {
+		panic("failed to initialise a TLS instance :(")
+	}
+
+	mail.Plain().Set("Have some encrypted goodness")
+	if err := mail.Send(); err != nil {
+		panic(" :( ")
+	}
+}
+
+func ExampleNewWithTLS_with_config() {
+	// Create a new MailYak instance that uses an explicit TLS connection. This
+	// ensures no communication is performed in plain-text.
+	//
+	// Specify the SMTP host:port to connect to, the authentication credentials
+	// (or nil if not needed), and use the tls.Config provided.
+	mail, err := NewWithTLS(
+		"mail.host.com:25",
+		smtp.PlainAuth("", "user", "pass", "mail.host.com"),
+		&tls.Config{
+			// ServerName is used to verify the hostname on the returned
+			// certificates unless InsecureSkipVerify is given. It is also included
+			// in the client's handshake to support virtual hosting unless it is
+			// an IP address.
+			ServerName: "mail.host.com",
+
+			// Negotiate a connection that uses at least TLS v1.2, or refuse the
+			// connection if the server does not support it. Most do, and it is
+			// a very good idea to enforce it!
+			MinVersion: tls.VersionTLS12,
+		},
+	)
 	if err != nil {
 		panic("failed to initialise a TLS instance :(")
 	}

@@ -4,18 +4,11 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
-	"net"
 	"net/smtp"
 	"regexp"
 	"strings"
 	"time"
 )
-
-// emailSender abstracts the connection and protocol conversation required to
-// send an email with a remote SMTP server.
-type emailSender interface {
-	Send(m *MailYak, body []byte) error
-}
 
 // MailYak is an easy-to-use email builder.
 type MailYak struct {
@@ -43,7 +36,7 @@ type MailYak struct {
 const mailDateFormat = time.RFC1123Z
 
 // New returns an instance of MailYak using host as the SMTP server, and
-// authenticating with auth.
+// authenticating with auth if non-nil.
 //
 // host must include the port number (i.e. "smtp.itsallbroken.com:25")
 //
@@ -62,7 +55,7 @@ func New(host string, auth smtp.Auth) *MailYak {
 		headers:        map[string]string{},
 		host:           host,
 		auth:           auth,
-		sender:         newSenderWithStartTLS(),
+		sender:         newSenderWithStartTLS(host),
 		trimRegex:      regexp.MustCompile("\r?\n"),
 		writeBccHeader: false,
 		date:           time.Now().Format(mailDateFormat),
@@ -70,7 +63,7 @@ func New(host string, auth smtp.Auth) *MailYak {
 }
 
 // NewWithTLS returns an instance of MailYak using host as the SMTP server over
-// an explicit TLS connection, and authenticating with auth.
+// an explicit TLS connection, and authenticating with auth if non-nil.
 //
 // host must include the port number (i.e. "smtp.itsallbroken.com:25")
 //
@@ -84,29 +77,16 @@ func New(host string, auth smtp.Auth) *MailYak {
 // If tlsConfig is nil, a sensible default is generated that can connect to
 // host.
 func NewWithTLS(host string, auth smtp.Auth, tlsConfig *tls.Config) (*MailYak, error) {
-	// If there is no TLS config provided, initialise a default.
-	if tlsConfig == nil {
-		// Split the hostname from the addr.
-		//
-		// This hostname is used during TLS negotiation and during SMTP
-		// authentication.
-		hostName, _, err := net.SplitHostPort(host)
-		if err != nil {
-			return nil, err
-		}
-
-		//nolint:gosec // Maximum compatability but please use TLS >= 1.2
-		tlsConfig = &tls.Config{
-			ServerName: hostName,
-		}
-	}
-
 	// Construct a default MailYak instance
 	m := New(host, auth)
 
-	// Initialise the TLS sender with the TLS config, swapping it with the
-	// default STARTTLS sender.
-	m.sender = newSenderWithExplicitTLS(tlsConfig)
+	// Initialise the TLS sender with the (potentially nil) TLS config, swapping
+	// it with the default STARTTLS sender.
+	var err error
+	m.sender, err = newSenderWithExplicitTLS(host, tlsConfig)
+	if err != nil {
+		return nil, err
+	}
 
 	return m, nil
 }
@@ -117,12 +97,8 @@ func NewWithTLS(host string, auth smtp.Auth, tlsConfig *tls.Config) (*MailYak, e
 // called, and any connection/authentication errors will be returned by Send().
 func (m *MailYak) Send() error {
 	m.date = time.Now().Format(mailDateFormat)
-	buf, err := m.buildMime()
-	if err != nil {
-		return err
-	}
 
-	return m.sender.Send(m, buf.Bytes())
+	return m.sender.Send(m)
 }
 
 // MimeBuf returns the buffer containing all the RAW MIME data.
@@ -131,10 +107,12 @@ func (m *MailYak) Send() error {
 // not use an SMTP interface.
 func (m *MailYak) MimeBuf() (*bytes.Buffer, error) {
 	m.date = time.Now().Format(mailDateFormat)
-	buf, err := m.buildMime()
-	if err != nil {
+
+	buf := &bytes.Buffer{}
+	if err := m.buildMime(buf); err != nil {
 		return nil, err
 	}
+
 	return buf, nil
 }
 
@@ -189,4 +167,30 @@ func (m *MailYak) HTML() *BodyPart {
 // Plain returns a BodyPart for the plain-text email body.
 func (m *MailYak) Plain() *BodyPart {
 	return &m.plain
+}
+
+// getToAddrs should return a slice of email addresses to be added to the
+// RCPT TO command.
+func (m *MailYak) getToAddrs() []string {
+	// Pre-allocate the slice to avoid growing it, we already know how big it
+	// needs to be.
+	addrs := len(m.toAddrs) + len(m.ccAddrs) + len(m.bccAddrs)
+	out := make([]string, 0, addrs)
+
+	out = append(out, m.toAddrs...)
+	out = append(out, m.ccAddrs...)
+	out = append(out, m.bccAddrs...)
+
+	return out
+}
+
+// getFromAddr should return the address to be used in the MAIL FROM
+// command.
+func (m *MailYak) getFromAddr() string {
+	return m.fromAddr
+}
+
+// getAuth should return the smtp.Auth if configured, nil if not.
+func (m *MailYak) getAuth() smtp.Auth {
+	return m.auth
 }

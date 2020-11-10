@@ -3,6 +3,7 @@ package mailyak
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -10,18 +11,18 @@ import (
 	"net/textproto"
 )
 
-func (m *MailYak) buildMime() (*bytes.Buffer, error) {
+func (m *MailYak) buildMime(w io.Writer) error {
 	mb, err := randomBoundary()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	ab, err := randomBoundary()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return m.buildMimeWithBoundaries(mb, ab)
+	return m.buildMimeWithBoundaries(w, mb, ab)
 }
 
 // randomBoundary returns a random hexadecimal string used for separating MIME
@@ -35,28 +36,26 @@ func randomBoundary() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%x", buf), nil
+	return hex.EncodeToString(buf), nil
 }
 
 // buildMimeWithBoundaries creates the MIME message using mb and ab as MIME
 // boundaries, and returns the generated MIME data as a buffer.
-func (m *MailYak) buildMimeWithBoundaries(mb, ab string) (*bytes.Buffer, error) {
-	var buf bytes.Buffer
-
-	if err := m.writeHeaders(&buf); err != nil {
-		return nil, err
+func (m *MailYak) buildMimeWithBoundaries(w io.Writer, mb, ab string) error {
+	if err := m.writeHeaders(w); err != nil {
+		return err
 	}
 
 	// Start our multipart/mixed part
-	mixed := multipart.NewWriter(&buf)
+	mixed := multipart.NewWriter(w)
 	if err := mixed.SetBoundary(mb); err != nil {
-		return nil, err
+		return err
 	}
 
 	// To avoid deferring a mixed.Close(), run the write in a closure and
 	// close the mixed after.
 	tryWrite := func() error {
-		fmt.Fprintf(&buf, "Content-Type: multipart/mixed;\r\n\tboundary=\"%s\"; charset=UTF-8\r\n\r\n", mixed.Boundary())
+		fmt.Fprintf(w, "Content-Type: multipart/mixed;\r\n\tboundary=\"%s\"; charset=UTF-8\r\n\r\n", mixed.Boundary())
 
 		ctype := fmt.Sprintf("multipart/alternative;\r\n\tboundary=\"%s\"", ab)
 
@@ -73,52 +72,52 @@ func (m *MailYak) buildMimeWithBoundaries(mb, ab string) (*bytes.Buffer, error) 
 	}
 
 	if err := tryWrite(); err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := mixed.Close(); err != nil {
-		return nil, err
+		return err
 	}
 
-	return &buf, nil
+	return nil
 }
 
 // writeHeaders writes the Mime-Version, Date, Reply-To, From, To and Subject headers,
 // plus any custom headers set via AddHeader().
-func (m *MailYak) writeHeaders(buf io.Writer) error {
+func (m *MailYak) writeHeaders(w io.Writer) error {
 
-	if _, err := buf.Write([]byte(m.fromHeader())); err != nil {
+	if _, err := w.Write([]byte(m.fromHeader())); err != nil {
 		return err
 	}
 
-	if _, err := buf.Write([]byte("Mime-Version: 1.0\r\n")); err != nil {
+	if _, err := w.Write([]byte("Mime-Version: 1.0\r\n")); err != nil {
 		return err
 	}
 
-	fmt.Fprintf(buf, "Date: %s\r\n", m.date)
+	fmt.Fprintf(w, "Date: %s\r\n", m.date)
 
 	if m.replyTo != "" {
-		fmt.Fprintf(buf, "Reply-To: %s\r\n", m.replyTo)
+		fmt.Fprintf(w, "Reply-To: %s\r\n", m.replyTo)
 	}
 
-	fmt.Fprintf(buf, "Subject: %s\r\n", m.subject)
+	fmt.Fprintf(w, "Subject: %s\r\n", m.subject)
 
 	for _, to := range m.toAddrs {
-		fmt.Fprintf(buf, "To: %s\r\n", to)
+		fmt.Fprintf(w, "To: %s\r\n", to)
 	}
 
 	for _, cc := range m.ccAddrs {
-		fmt.Fprintf(buf, "CC: %s\r\n", cc)
+		fmt.Fprintf(w, "CC: %s\r\n", cc)
 	}
 
 	if m.writeBccHeader {
 		for _, bcc := range m.bccAddrs {
-			fmt.Fprintf(buf, "BCC: %s\r\n", bcc)
+			fmt.Fprintf(w, "BCC: %s\r\n", bcc)
 		}
 	}
 
 	for k, v := range m.headers {
-		fmt.Fprintf(buf, "%s: %s\r\n", k, v)
+		fmt.Fprintf(w, "%s: %s\r\n", k, v)
 	}
 
 	return nil
