@@ -48,6 +48,7 @@ func smtpExchange(m sendableMail, conn net.Conn, serverName string, tryTLSUpgrad
 
 	if tryTLSUpgrade {
 		if ok, _ := c.Extension("STARTTLS"); ok {
+			//nolint:gosec
 			config := &tls.Config{
 				ServerName: serverName,
 			}
