@@ -20,7 +20,7 @@ func (s *senderWithStartTLS) Send(m sendableMail) error {
 	}
 	defer func() { _ = conn.Close() }()
 
-	return smtpExchange(m, conn, s.hostname)
+	return smtpExchange(m, conn, s.hostname, true)
 }
 
 func newSenderWithStartTLS(hostAndPort string) *senderWithStartTLS {

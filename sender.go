@@ -2,6 +2,7 @@ package mailyak
 
 import (
 	"bufio"
+	"crypto/tls"
 	"io"
 	"net"
 	"net/smtp"
@@ -37,13 +38,25 @@ type sendableMail interface {
 // conn.
 //
 // serverName must be the hostname (or IP address) of the remote endpoint.
-func smtpExchange(m sendableMail, conn net.Conn, serverName string) error {
+func smtpExchange(m sendableMail, conn net.Conn, serverName string, tryTLSUpgrade bool) error {
 	// Connect to the SMTP server
 	c, err := smtp.NewClient(conn, serverName)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = c.Quit() }()
+
+	if tryTLSUpgrade {
+		if ok, _ := c.Extension("STARTTLS"); ok {
+			//nolint:gosec
+			config := &tls.Config{
+				ServerName: serverName,
+			}
+			if err = c.StartTLS(config); err != nil {
+				return err
+			}
+		}
+	}
 
 	// Attempt to authenticate if credentials were provided
 	var nilAuth smtp.Auth
