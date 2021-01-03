@@ -5,25 +5,30 @@ import (
 	"net"
 )
 
-// senderWithStartTLS connects to the remote SMTP server, upgrades the
-// connection using STARTTLS if available, and sends the email.
-type senderWithStartTLS struct {
-	hostAndPort string
-	hostname    string
-	buf         *bytes.Buffer
+// sender connects to the remote SMTP server, upgrades the
+// connection using STARTTLS if tryTLSUpgrade set, and sends the email.
+type sender struct {
+	hostAndPort   string
+	hostname      string
+	buf           *bytes.Buffer
+	tryTLSUpgrade bool
 }
 
-func (s *senderWithStartTLS) Send(m sendableMail) error {
+func (s *sender) Send(m sendableMail) error {
 	conn, err := net.Dial("tcp", s.hostAndPort)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = conn.Close() }()
 
-	return smtpExchange(m, conn, s.hostname, true)
+	return smtpExchange(m, conn, s.hostname, s.tryTLSUpgrade)
 }
 
-func newSenderWithStartTLS(hostAndPort string) *senderWithStartTLS {
+func newSenderWithStartTLS(hostAndPort string) *sender {
+	return newSender(hostAndPort, true)
+}
+
+func newSender(hostAndPort string, tlsUpgrade bool) *sender {
 	hostName, _, err := net.SplitHostPort(hostAndPort)
 	if err != nil {
 		// Really this should be an error, but we can't return it from the New()
@@ -39,9 +44,10 @@ func newSenderWithStartTLS(hostAndPort string) *senderWithStartTLS {
 		hostName = hostAndPort
 	}
 
-	return &senderWithStartTLS{
-		hostAndPort: hostAndPort,
-		hostname:    hostName,
-		buf:         &bytes.Buffer{},
+	return &sender{
+		hostAndPort:   hostAndPort,
+		hostname:      hostName,
+		buf:           &bytes.Buffer{},
+		tryTLSUpgrade: tlsUpgrade,
 	}
 }

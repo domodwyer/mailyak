@@ -35,6 +35,9 @@ type MailYak struct {
 // Email Date timestamp format
 const mailDateFormat = time.RFC1123Z
 
+// OptionTLS to enable TLS
+const OptionTLS = "optionTLS"
+
 // New returns an instance of MailYak using host as the SMTP server, and
 // authenticating with auth if non-nil.
 //
@@ -50,12 +53,23 @@ const mailDateFormat = time.RFC1123Z
 // MailYak instances created with New will switch to using TLS after connecting
 // if the remote host supports the STARTTLS command. For an explicit TLS
 // connection, or to provide a custom tls.Config, use NewWithTLS() instead.
-func New(host string, auth smtp.Auth) *MailYak {
+func New(host string, auth smtp.Auth, options ...string) *MailYak {
+	var s *sender
+	for _, v := range options {
+		switch v {
+		case OptionTLS:
+			s = newSenderWithStartTLS(host)
+		}
+	}
+	if s == nil {
+		s = newSender(host, false)
+	}
+
 	return &MailYak{
 		headers:        map[string]string{},
 		host:           host,
 		auth:           auth,
-		sender:         newSenderWithStartTLS(host),
+		sender:         s,
 		trimRegex:      regexp.MustCompile("\r?\n"),
 		writeBccHeader: false,
 		date:           time.Now().Format(mailDateFormat),
