@@ -143,7 +143,7 @@ func (m *MailYak) writeBody(w io.Writer, boundary string) error {
 
 	var err error
 	writePart := func(ctype string, data []byte) {
-		if len(data) == 0 || err != nil {
+		if err != nil {
 			return
 		}
 

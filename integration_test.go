@@ -60,6 +60,18 @@ func TestIntegration_TLS(t *testing.T) {
 			wantErr: nil,
 		},
 		{
+			name: "empty",
+			fn: func(m *MailYak) {
+				m.From("from@example.org")
+				m.FromName("From Example")
+				m.To("dom@eitsallbroken.com")
+				m.Bcc("bcc1@example.org", "bcc2@example.org")
+				m.Subject("TLS empty")
+				m.ReplyTo("replies@example.org")
+			},
+			wantErr: nil,
+		},
+		{
 			name: "authenticated",
 			auth: smtp.PlainAuth("ident", "user", "pass", "127.0.0.1"),
 			fn: func(m *MailYak) {
@@ -90,7 +102,7 @@ func TestIntegration_TLS(t *testing.T) {
 				m.To("to@example.org")
 				m.Subject("TLS Attachment test")
 				m.ReplyTo("replies@example.org")
-				m.HTML().Set("Attachment MF5: " + hashString)
+				m.HTML().Set("Attachment MD5: " + hashString)
 				m.Attach("test.bin", bytes.NewReader(data))
 			},
 			wantErr: nil,
@@ -153,6 +165,18 @@ func TestIntegration_PlainText(t *testing.T) {
 			wantErr: nil,
 		},
 		{
+			name: "empty",
+			fn: func(m *MailYak) {
+				m.From("from@example.org")
+				m.FromName("From Example")
+				m.To("dom@eitsallbroken.com")
+				m.Bcc("bcc1@example.org", "bcc2@example.org")
+				m.Subject("Plaintext empty")
+				m.ReplyTo("replies@example.org")
+			},
+			wantErr: nil,
+		},
+		{
 			name: "authenticated",
 			auth: smtp.PlainAuth("ident", "user", "pass", "127.0.0.1"),
 			fn: func(m *MailYak) {
@@ -183,7 +207,7 @@ func TestIntegration_PlainText(t *testing.T) {
 				m.To("to@example.org")
 				m.Subject("PLAIN - Attachment test")
 				m.ReplyTo("replies@example.org")
-				m.HTML().Set("Attachment MF5: " + hashString)
+				m.HTML().Set("Attachment MD5: " + hashString)
 				m.Attach("test.bin", bytes.NewReader(data))
 			},
 			wantErr: nil,
