@@ -3,7 +3,6 @@ package mailyak
 import (
 	"bytes"
 	"fmt"
-	"net/smtp"
 	"regexp"
 	"strings"
 	"time"
@@ -16,19 +15,18 @@ import (
 type MailYak struct {
 	html  BodyPart
 	plain BodyPart
-
+	attachments    []attachment
 	toAddrs        []string
-	ccAddrs        []string
-	bccAddrs       []string
+//	ccAddrs        []string
+//	bccAddrs       []string
+	xsender        string
+	xreceiver      string
 	subject        string
 	fromAddr       string
 	fromName       string
 	replyTo        string
 	headers        map[string]string // arbitrary headers
-	attachments    []attachment
-	auth           smtp.Auth
 	trimRegex      *regexp.Regexp
-	host           string
 	writeBccHeader bool
 	date           string
 }
@@ -45,14 +43,14 @@ type MailYak struct {
 // 			"stmp.itsallbroken.com",
 //		))
 //
-func New(host string, auth smtp.Auth) *MailYak {
+func New() *MailYak {
+	loc, _ := time.LoadLocation("UTC")
 	return &MailYak{
 		headers:        map[string]string{},
-		host:           host,
-		auth:           auth,
 		trimRegex:      regexp.MustCompile("\r?\n"),
 		writeBccHeader: false,
-		date:           time.Now().Format(time.RFC1123Z),
+//		date:           time.Now().Format(time.RFC1123Z),
+		date:     time.Now().In(loc).Format(time.RFC1123Z),
 	}
 }
 
@@ -60,19 +58,15 @@ func New(host string, auth smtp.Auth) *MailYak {
 //
 // Attachments are read when Send() is called, and any connection/authentication
 // errors will be returned by Send().
-func (m *MailYak) Send() error {
+
+// trap--------------------------11---------------2----1--2--1-21-2-1-2-1-21-2-1-
+func (m *MailYak) Send() string {
 	buf, err := m.buildMime()
 	if err != nil {
-		return err
+		return ""
 	}
+	return buf.String()
 
-	return smtp.SendMail(
-		m.host,
-		m.auth,
-		m.fromAddr,
-		append(append(m.toAddrs, m.ccAddrs...), m.bccAddrs...),
-		buf.Bytes(),
-	)
 }
 
 // MimeBuf returns the buffer containing all the RAW MIME data.
@@ -108,21 +102,19 @@ func (m *MailYak) String() string {
 		custom = strings.Join(hdrs, ", ") + ", "
 	}
 	return fmt.Sprintf(
-		"&MailYak{date: %q, from: %q, fromName: %q, html: %v bytes, plain: %v bytes, toAddrs: %v, "+
-			"bccAddrs: %v, subject: %q, %vhost: %q, attachments (%v): %v, auth set: %v}",
+		"&MailYak{date: %q, from: %q, fromName: %q, html: %v bytes, plain: %v bytes,  "+
+			"subject: %q, %vhost: %q, attachments (%v): %v}",
 		m.date,
 		m.fromAddr,
 		m.fromName,
 		len(m.HTML().String()),
 		len(m.Plain().String()),
-		m.toAddrs,
-		m.bccAddrs,
+//		m.toAddrs,
+//		m.bccAddrs,
 		m.subject,
 		custom,
-		m.host,
 		len(att),
 		att,
-		m.auth != nil,
 	)
 }
 
