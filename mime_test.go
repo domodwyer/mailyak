@@ -108,7 +108,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			"",
 			"",
 			true,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com,repairs@itsallbroken.com\r\n",
 		},
 		{
 			"Single Cc address, Multiple To addresses",
@@ -118,7 +118,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			"",
 			"",
 			true,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com,repairs@itsallbroken.com\r\nCC: cc@itsallbroken.com\r\n",
 		},
 		{
 			"Multiple Cc addresses, Multiple To addresses",
@@ -128,7 +128,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			"",
 			"",
 			true,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc1@itsallbroken.com\r\nCC: cc2@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com,repairs@itsallbroken.com\r\nCC: cc1@itsallbroken.com,cc2@itsallbroken.com\r\n",
 		},
 		{
 			"Single Bcc address, Multiple To addresses",
@@ -138,7 +138,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			"",
 			"",
 			true,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nBCC: bcc@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com,repairs@itsallbroken.com\r\nBCC: bcc@itsallbroken.com\r\n",
 		},
 		{
 			"Multiple Bcc addresses, Multiple To addresses",
@@ -148,7 +148,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			"",
 			"",
 			true,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nBCC: bcc1@itsallbroken.com\r\nBCC: bcc2@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com,repairs@itsallbroken.com\r\nBCC: bcc1@itsallbroken.com,bcc2@itsallbroken.com\r\n",
 		},
 		{
 			"Multiple Bcc addresses, Multiple To addresses",
@@ -158,7 +158,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			"",
 			"",
 			false,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com,repairs@itsallbroken.com\r\n",
 		},
 		{
 			"All together now",
@@ -168,7 +168,7 @@ func TestMailYakWriteHeaders(t *testing.T) {
 			"",
 			"",
 			true,
-			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com\r\nTo: repairs@itsallbroken.com\r\nCC: cc1@itsallbroken.com\r\nCC: cc2@itsallbroken.com\r\nBCC: bcc1@itsallbroken.com\r\nBCC: bcc2@itsallbroken.com\r\n",
+			"From: Dom <dom@itsallbroken.com>\r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: test@itsallbroken.com,repairs@itsallbroken.com\r\nCC: cc1@itsallbroken.com,cc2@itsallbroken.com\r\nBCC: bcc1@itsallbroken.com,bcc2@itsallbroken.com\r\n",
 		},
 	}
 	for _, tt := range tests {
@@ -403,7 +403,7 @@ func TestMailYakBuildMime(t *testing.T) {
 			"",
 			"",
 			"",
-			"From: \r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: one\r\nTo: two\r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--mixed--\r\n",
+			"From: \r\nMime-Version: 1.0\r\nDate: " + now + "\r\nSubject: \r\nTo: one,two\r\nContent-Type: multipart/mixed;\r\n\tboundary=\"mixed\"; charset=UTF-8\r\n\r\n--mixed\r\nContent-Type: multipart/alternative;\r\n\tboundary=\"alt\"\r\n\r\n\r\n--mixed--\r\n",
 			false,
 		},
 	}
