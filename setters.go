@@ -42,7 +42,7 @@ func (m *MailYak) To(addrs ...string) {
 //		"two@itsallbroken.com"
 //	}
 //
-// 	mail.Bcc(bccs...)
+//	mail.Bcc(bccs...)
 func (m *MailYak) Bcc(addrs ...string) {
 	m.bccAddrs = []string{}
 
@@ -64,15 +64,14 @@ func (m *MailYak) Bcc(addrs ...string) {
 //
 // Specifically, RFC822 says:
 //
-// 		Some  systems  may choose to include the text of the "Bcc" field only in the
-// 		author(s)'s  copy,  while  others  may also include it in the text sent to
-// 		all those indicated in the "Bcc" list.
+//	Some  systems  may choose to include the text of the "Bcc" field only in the
+//	author(s)'s  copy,  while  others  may also include it in the text sent to
+//	all those indicated in the "Bcc" list.
 //
 // This ambiguity can result in some SMTP servers not stripping the BCC header
 // and exposing the BCC addressees to recipients. For more information, see:
 //
-// 		https://github.com/domodwyer/mailyak/issues/14
-//
+//	https://github.com/domodwyer/mailyak/issues/14
 func (m *MailYak) WriteBccHeader(shouldWrite bool) {
 	m.writeBccHeader = shouldWrite
 }
@@ -90,7 +89,7 @@ func (m *MailYak) WriteBccHeader(shouldWrite bool) {
 //		"two@itsallbroken.com"
 //	}
 //
-// 	mail.Cc(ccs...)
+//	mail.Cc(ccs...)
 func (m *MailYak) Cc(addrs ...string) {
 	m.ccAddrs = []string{}
 
@@ -115,7 +114,7 @@ func (m *MailYak) From(addr string) {
 //
 // If set, emails typically display as being from:
 //
-// 		From Name <sender@example.com>
+//	From Name <sender@example.com>
 //
 // If name contains non-ASCII characters, it is Q-encoded according to RFC1342.
 func (m *MailYak) FromName(name string) {

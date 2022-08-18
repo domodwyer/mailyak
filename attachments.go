@@ -60,7 +60,7 @@ func (m *MailYak) AttachWithMimeType(name string, r io.Reader, mimeType string) 
 // Files can be referenced by their name within the email using the cid URL
 // protocol:
 //
-// 		<img src="cid:myFileName"/>
+//	<img src="cid:myFileName"/>
 //
 // r is not read until Send is called and the MIME type will be detected
 // using https://golang.org/pkg/net/http/#DetectContentType
@@ -80,7 +80,7 @@ func (m *MailYak) AttachInline(name string, r io.Reader) {
 // Files can be referenced by their name within the email using the cid URL
 // protocol:
 //
-// 		<img src="cid:myFileName"/>
+//	<img src="cid:myFileName"/>
 //
 // r is not read until Send is called.
 func (m *MailYak) AttachInlineWithMimeType(name string, r io.Reader, mimeType string) {
