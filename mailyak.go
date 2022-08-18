@@ -40,12 +40,12 @@ const mailDateFormat = time.RFC1123Z
 //
 // host must include the port number (i.e. "smtp.itsallbroken.com:25")
 //
-//      mail := mailyak.New("smtp.itsallbroken.com:25", smtp.PlainAuth(
-//          "",
-//          "username",
-//          "password",
-//          "smtp.itsallbroken.com",
-//      ))
+//	mail := mailyak.New("smtp.itsallbroken.com:25", smtp.PlainAuth(
+//	    "",
+//	    "username",
+//	    "password",
+//	    "smtp.itsallbroken.com",
+//	))
 //
 // MailYak instances created with New will switch to using TLS after connecting
 // if the remote host supports the STARTTLS command. For an explicit TLS
@@ -67,12 +67,12 @@ func New(host string, auth smtp.Auth) *MailYak {
 //
 // host must include the port number (i.e. "smtp.itsallbroken.com:25")
 //
-//      mail := mailyak.NewWithTLS("smtp.itsallbroken.com:25", smtp.PlainAuth(
-//          "",
-//          "username",
-//          "password",
-//          "smtp.itsallbroken.com",
-//      ), tlsConfig)
+//	mail := mailyak.NewWithTLS("smtp.itsallbroken.com:25", smtp.PlainAuth(
+//	    "",
+//	    "username",
+//	    "password",
+//	    "smtp.itsallbroken.com",
+//	), tlsConfig)
 //
 // If tlsConfig is nil, a sensible default is generated that can connect to
 // host.
