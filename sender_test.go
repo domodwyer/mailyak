@@ -274,7 +274,7 @@ func TestSMTPProtocolExchange(t *testing.T) {
 
 		conn, err := l.Accept()
 		if err != nil {
-			t.Fatal(err)
+			panic(err)
 		}
 		defer conn.Close()
 
