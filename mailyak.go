@@ -201,19 +201,22 @@ func (m *MailYak) getAuth() smtp.Auth {
 // Or in other words, converts:
 // ["a@example.com", "John <b@example.com>", "invalid"]
 // to
-// ["a@example.com", "b@example.com"].
+// ["a@example.com", "b@example.com", "invalid"].
 //
-// Addresses that don't comply with the RFC 5322 format are skipped.
+// Note that invalid addresses are kept as they are.
 func stripNames(addresses []string) []string {
 	result := make([]string, 0, len(addresses))
 
-	for _, item := range addresses {
-		addr, err := mail.ParseAddress(item)
-		if err != nil {
-			continue
-		}
+	for _, original := range addresses {
+		addr, err := mail.ParseAddress(original)
 
-		result = append(result, addr.Address)
+		if err != nil {
+			// add as it is
+			result = append(result, original)
+		} else {
+			// add only the email part
+			result = append(result, addr.Address)
+		}
 	}
 
 	return result

@@ -72,10 +72,12 @@ func TestStripNames(t *testing.T) {
 	}
 
 	expected := map[string]struct{}{
-		"a@example.com": struct{}{},
-		"b@example.com": struct{}{},
-		"c@example.com": struct{}{},
-		"d@example.com": struct{}{},
+		"a@example.com": {},
+		"b@example.com": {},
+		"invalid1":      {},
+		"c@example.com": {},
+		"d@example.com": {},
+		"invalid2":      {},
 	}
 
 	result := stripNames(addresses)
