@@ -58,3 +58,35 @@ func TestMailYakDate(t *testing.T) {
 		t.Errorf("MailYak.Send(): timestamp not updated: %v", dateOne)
 	}
 }
+
+// TestStripNames ensures that the stripNames() method correctly
+// remove the name part of a list of RFC 5322 addresses.
+func TestStripNames(t *testing.T) {
+	addresses := []string{
+		"a@example.com",
+		"b@example.com",
+		"invalid1",
+		"John Doe <c@example.com>",
+		"<d@example.com>",
+		"invalid2",
+	}
+
+	expected := map[string]struct{}{
+		"a@example.com": struct{}{},
+		"b@example.com": struct{}{},
+		"c@example.com": struct{}{},
+		"d@example.com": struct{}{},
+	}
+
+	result := stripNames(addresses)
+
+	if len(result) != len(expected) {
+		t.Fatalf("stripNames: Expected %d addresses, got %d: \n%v", len(expected), len(result), result)
+	}
+
+	for _, addr := range result {
+		if _, ok := expected[addr]; !ok {
+			t.Errorf("stripNames: Address %q was not expected", addr)
+		}
+	}
+}

@@ -18,14 +18,19 @@ func TestMailYakTo(t *testing.T) {
 		want []string
 	}{
 		{
-			"Single email",
+			"Single email (without name)",
 			[]string{"dom@itsallbroken.com"},
 			[]string{"dom@itsallbroken.com"},
 		},
 		{
+			"Single email (with name)",
+			[]string{"Dom <dom@itsallbroken.com>"},
+			[]string{"Dom <dom@itsallbroken.com>"},
+		},
+		{
 			"Multiple email",
-			[]string{"dom@itsallbroken.com", "ohnoes@itsallbroken.com"},
-			[]string{"dom@itsallbroken.com", "ohnoes@itsallbroken.com"},
+			[]string{"Dom <dom@itsallbroken.com>", "ohnoes@itsallbroken.com"},
+			[]string{"Dom <dom@itsallbroken.com>", "ohnoes@itsallbroken.com"},
 		},
 		{
 			"Empty last",
@@ -68,14 +73,19 @@ func TestMailYakBcc(t *testing.T) {
 		want []string
 	}{
 		{
-			"Single email",
+			"Single email (without name)",
 			[]string{"dom@itsallbroken.com"},
 			[]string{"dom@itsallbroken.com"},
 		},
 		{
+			"Single email (with name)",
+			[]string{"Dom <dom@itsallbroken.com>"},
+			[]string{"Dom <dom@itsallbroken.com>"},
+		},
+		{
 			"Multiple email",
-			[]string{"dom@itsallbroken.com", "ohnoes@itsallbroken.com"},
-			[]string{"dom@itsallbroken.com", "ohnoes@itsallbroken.com"},
+			[]string{"Dom <dom@itsallbroken.com>", "ohnoes@itsallbroken.com"},
+			[]string{"Dom <dom@itsallbroken.com>", "ohnoes@itsallbroken.com"},
 		},
 		{
 			"Empty last",
@@ -105,6 +115,62 @@ func TestMailYakBcc(t *testing.T) {
 		})
 	}
 }
+
+func TestMailYakCc(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		// Test description.
+		name string
+		// Parameters.
+		addrs []string
+		// Want
+		want []string
+	}{
+		{
+			"Single email (without name)",
+			[]string{"dom@itsallbroken.com"},
+			[]string{"dom@itsallbroken.com"},
+		},
+		{
+			"Single email (with name)",
+			[]string{"Dom <dom@itsallbroken.com>"},
+			[]string{"Dom <dom@itsallbroken.com>"},
+		},
+		{
+			"Multiple email",
+			[]string{"Dom <dom@itsallbroken.com>", "ohnoes@itsallbroken.com"},
+			[]string{"Dom <dom@itsallbroken.com>", "ohnoes@itsallbroken.com"},
+		},
+		{
+			"Empty last",
+			[]string{"dom@itsallbroken.com", "ohnoes@itsallbroken.com", ""},
+			[]string{"dom@itsallbroken.com", "ohnoes@itsallbroken.com"},
+		},
+		{
+			"Empty Middle",
+			[]string{"dom@itsallbroken.com", "", "ohnoes@itsallbroken.com"},
+			[]string{"dom@itsallbroken.com", "ohnoes@itsallbroken.com"},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			m := &MailYak{
+				ccAddrs:   []string{},
+				trimRegex: regexp.MustCompile("\r?\n"),
+			}
+			m.Cc(tt.addrs...)
+
+			if !reflect.DeepEqual(m.ccAddrs, tt.want) {
+				t.Errorf("%q. MailYak.Cc() = %v, want %v", tt.name, m.ccAddrs, tt.want)
+			}
+		})
+	}
+}
+
 func TestMailYakSubject(t *testing.T) {
 	t.Parallel()
 

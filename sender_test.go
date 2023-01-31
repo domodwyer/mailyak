@@ -128,7 +128,7 @@ type mockMail struct {
 // toAddrs should return a slice of email addresses to be added to the RCPT
 // TO command.
 func (m *mockMail) getToAddrs() []string {
-	return m.toAddrs
+	return stripNames(m.toAddrs)
 }
 
 // fromAddr should return the address to be used in the MAIL FROM command.
@@ -182,7 +182,7 @@ func TestSMTPProtocolExchange(t *testing.T) {
 				toAddrs: []string{
 					"to@example.org",
 					"another@example.com",
-					"dom@itsallbroken.com",
+					"Dom <dom@itsallbroken.com>",
 				},
 				fromAddr: "from@example.org",
 				mime:     "bananas",
