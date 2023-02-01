@@ -12,7 +12,7 @@ import "mime"
 //
 //	tos := []string{
 //		"one@itsallbroken.com",
-//		"two@itsallbroken.com"
+//		"John Doe <two@itsallbroken.com>"
 //	}
 //
 //	mail.To(tos...)
@@ -39,7 +39,7 @@ func (m *MailYak) To(addrs ...string) {
 //
 //	bccs := []string{
 //		"one@itsallbroken.com",
-//		"two@itsallbroken.com"
+//		"John Doe <two@itsallbroken.com>"
 //	}
 //
 //	mail.Bcc(bccs...)
@@ -86,7 +86,7 @@ func (m *MailYak) WriteBccHeader(shouldWrite bool) {
 //
 //	ccs := []string{
 //		"one@itsallbroken.com",
-//		"two@itsallbroken.com"
+//		"John Doe <two@itsallbroken.com>"
 //	}
 //
 //	mail.Cc(ccs...)
