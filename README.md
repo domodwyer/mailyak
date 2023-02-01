@@ -92,3 +92,12 @@ if err := mail.Send(); err != nil {
   emailed out!
 - For your own sanity you should vendor this, and any other libraries when going
   into production.
+
+
+### Maintenance Status
+
+This library is fully maintained. 
+
+The (relatively) small API/scope and many years spent maturing means it doesn't
+receive frequent code changes any more. Bug fixes are definitely accepted (and
+appreciated!), and you can consider this a stable and maintained library.
