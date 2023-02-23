@@ -144,3 +144,13 @@ func (m *MailYak) Subject(sub string) {
 func (m *MailYak) AddHeader(name, value string) {
 	m.headers[m.trimRegex.ReplaceAllString(name, "")] = mime.QEncoding.Encode("UTF-8", m.trimRegex.ReplaceAllString(value, ""))
 }
+
+// LocalName sets the sender domain name.
+//
+// If set, it is used in the EHLO/HELO command instead of the default domain
+// (localhost, see [smtp.NewClient]). Some SMTP servers, such as the Gmail
+// SMTP-relay, requires a proper domain name and will reject attempts to use
+// localhost.
+func (m *MailYak) LocalName(name string) {
+	m.localName = m.trimRegex.ReplaceAllString(name, "")
+}

@@ -301,3 +301,44 @@ func TestMailYakAddHeader(t *testing.T) {
 		})
 	}
 }
+
+func TestMailYakLocalName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		// Test description.
+		name string
+		// Parameters.
+		from string
+		// Want
+		want string
+	}{
+		{
+			"empty",
+			"",
+			"",
+		},
+		{
+			"ASCII",
+			"example.com\r\n",
+			"example.com",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			m := &MailYak{
+				headers:   map[string]string{},
+				trimRegex: regexp.MustCompile("\r?\n"),
+			}
+
+			m.LocalName(tt.from)
+
+			if !reflect.DeepEqual(m.localName, tt.want) {
+				t.Errorf("%q. MailYak.LocalName() = %v, want %v", tt.name, m.localName, tt.want)
+			}
+		})
+	}
+}

@@ -119,10 +119,17 @@ func newConnAsserts(c net.Conn, t *testing.T) *connAsserts {
 // mockMail provides the methods for a sendableMail, allowing for deterministic
 // MIME content in tests.
 type mockMail struct {
-	toAddrs  []string
-	fromAddr string
-	auth     smtp.Auth
-	mime     string
+	localName string
+	toAddrs   []string
+	fromAddr  string
+	auth      smtp.Auth
+	mime      string
+}
+
+// getLocalName should return the sender domain to be used in the EHLO/HELO
+// command.
+func (m *mockMail) getLocalName() string {
+	return m.localName
 }
 
 // toAddrs should return a slice of email addresses to be added to the RCPT
@@ -262,6 +269,48 @@ func TestSMTPProtocolExchange(t *testing.T) {
 			wantTLSErr:       nil,
 			wantPlaintextErr: nil,
 		},
+		{
+			name: "with localname",
+			mail: &mockMail{
+				toAddrs: []string{
+					"to@example.org",
+					"another@example.com",
+					"Dom <dom@itsallbroken.com>",
+				},
+				fromAddr:  "from@example.org",
+				mime:      "bananas",
+				localName: "example.com",
+			},
+			connFn: func(c *connAsserts) {
+				c.Respond("220 localhost ESMTP bananas\r\n")
+
+				c.Expect("EHLO example.com\r\n")
+				c.Respond("250-example.com Hola\r\n")
+				c.Respond("250 AUTH LOGIN PLAIN\r\n")
+
+				c.Expect("MAIL FROM:<from@example.org>\r\n")
+				c.Respond("250 OK\r\n")
+
+				c.Expect("RCPT TO:<to@example.org>\r\n")
+				c.Respond("250 OK\r\n")
+
+				c.Expect("RCPT TO:<another@example.com>\r\n")
+				c.Respond("250 OK\r\n")
+
+				c.Expect("RCPT TO:<dom@itsallbroken.com>\r\n")
+				c.Respond("250 OK\r\n")
+
+				c.Expect("DATA\r\n")
+				c.Respond("354 OK\r\n")
+				c.Expect("bananas\r\n.\r\n")
+				c.Respond("250 Will do friend\r\n")
+
+				c.Expect("QUIT\r\n")
+				c.Respond("221 Adios\r\n")
+			},
+			wantTLSErr:       nil,
+			wantPlaintextErr: nil,
+		},
 	}
 
 	// handleConn provides the accept loop for both the TLS server, and the
@@ -282,7 +331,7 @@ func TestSMTPProtocolExchange(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		var tt = tt
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
