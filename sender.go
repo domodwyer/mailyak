@@ -16,6 +16,10 @@ type emailSender interface {
 
 // sendableMail provides a set of methods to describe an email to a SMTP server.
 type sendableMail interface {
+	// getLocalName should return the sender domain to be used in the EHLO/HELO
+	// command.
+	getLocalName() string
+
 	// getToAddrs should return a slice of email addresses to be added to the
 	// RCPT TO command.
 	getToAddrs() []string
@@ -45,6 +49,12 @@ func smtpExchange(m sendableMail, conn net.Conn, serverName string, tryTLSUpgrad
 		return err
 	}
 	defer func() { _ = c.Quit() }()
+
+	if localName := m.getLocalName(); localName != "" {
+		if err := c.Hello(localName); err != nil {
+			return err
+		}
+	}
 
 	if tryTLSUpgrade {
 		if ok, _ := c.Extension("STARTTLS"); ok {

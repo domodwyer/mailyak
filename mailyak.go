@@ -16,6 +16,7 @@ type MailYak struct {
 	html  BodyPart
 	plain BodyPart
 
+	localName      string
 	toAddrs        []string
 	ccAddrs        []string
 	bccAddrs       []string
@@ -168,6 +169,12 @@ func (m *MailYak) HTML() *BodyPart {
 // Plain returns a BodyPart for the plain-text email body.
 func (m *MailYak) Plain() *BodyPart {
 	return &m.plain
+}
+
+// getLocalName should return the sender domain to be used in the EHLO/HELO
+// command.
+func (m *MailYak) getLocalName() string {
+	return m.localName
 }
 
 // getToAddrs should return a slice of email addresses to be added to the
