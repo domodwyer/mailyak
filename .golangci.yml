@@ -27,13 +27,13 @@ output:
 
 linters:
   enable:
-    - golint
+    - revive
     - gosec
     - unconvert
     - gocyclo
     - goimports
     - nakedret
-    - scopelint
+    - exportloopref
     - exhaustive
     - exportloopref
 
