@@ -51,7 +51,9 @@ func smtpExchange(m sendableMail, conn net.Conn, serverName string, tryTLSUpgrad
 	defer func() { _ = c.Quit() }()
 
 	if localName := m.getLocalName(); localName != "" {
-		c.Hello(localName)
+		if err := c.Hello(localName); err != nil {
+			return err
+		}
 	}
 
 	if tryTLSUpgrade {
