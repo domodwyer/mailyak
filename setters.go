@@ -1,6 +1,8 @@
 package mailyak
 
-import "mime"
+import (
+	"mime"
+)
 
 // To sets a list of recipient addresses.
 //
@@ -136,13 +138,27 @@ func (m *MailYak) Subject(sub string) {
 }
 
 // AddHeader adds an arbitrary email header.
+// It appends to any existing values associated with key.
 //
 // If value contains non-ASCII characters, it is Q-encoded according to RFC1342.
 // As always, validate any user input before adding it to a message, as this
 // method may enable an attacker to override the standard headers and, for
 // example, BCC themselves in a password reset email to a different user.
 func (m *MailYak) AddHeader(name, value string) {
-	m.headers[m.trimRegex.ReplaceAllString(name, "")] = mime.QEncoding.Encode("UTF-8", m.trimRegex.ReplaceAllString(value, ""))
+	key := m.trimRegex.ReplaceAllString(name, "")
+	m.headers[key] = append(m.headers[key], mime.QEncoding.Encode("UTF-8", m.trimRegex.ReplaceAllString(value, "")))
+}
+
+// SetHeader sets the header entries associated with key to
+// the single element value. It replaces any existing
+// values associated with key.
+//
+// If value contains non-ASCII characters, it is Q-encoded according to RFC1342.
+// As always, validate any user input before adding it to a message, as this
+// method may enable an attacker to override the standard headers and, for
+// example, BCC themselves in a password reset email to a different user.
+func (m *MailYak) SetHeader(name, value string) {
+	m.headers[m.trimRegex.ReplaceAllString(name, "")] = []string{mime.QEncoding.Encode("UTF-8", m.trimRegex.ReplaceAllString(value, ""))}
 }
 
 // LocalName sets the sender domain name.
