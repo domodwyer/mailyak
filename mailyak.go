@@ -24,7 +24,7 @@ type MailYak struct {
 	fromAddr       string
 	fromName       string
 	replyTo        string
-	headers        map[string]string // arbitrary headers
+	headers        map[string][]string // arbitrary headers
 	attachments    []attachment
 	trimRegex      *regexp.Regexp
 	auth           smtp.Auth
@@ -54,7 +54,7 @@ const mailDateFormat = time.RFC1123Z
 // connection, or to provide a custom tls.Config, use NewWithTLS() instead.
 func New(host string, auth smtp.Auth) *MailYak {
 	return &MailYak{
-		headers:        map[string]string{},
+		headers:        map[string][]string{},
 		host:           host,
 		auth:           auth,
 		sender:         newSenderWithStartTLS(host),

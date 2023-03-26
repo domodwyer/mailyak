@@ -256,28 +256,37 @@ func TestMailYakAddHeader(t *testing.T) {
 		// Test description.
 		name string
 		// Parameters.
-		from map[string]string
+		from map[string][]string
 		// Want
-		want map[string]string
+		want map[string][]string
 	}{
 		{
 			"ASCII",
-			map[string]string{
-				"List-Unsubscribe": "http://example.com",
-				"X-NASTY":          "true\r\nBcc: badguy@example.com",
+			map[string][]string{
+				"List-Unsubscribe": {"http://example.com"},
+				"X-NASTY":          {"true\r\nBcc: badguy@example.com"},
 			},
-			map[string]string{
-				"List-Unsubscribe": "http://example.com",
-				"X-NASTY":          "trueBcc: badguy@example.com",
+			map[string][]string{
+				"List-Unsubscribe": {"http://example.com"},
+				"X-NASTY":          {"trueBcc: badguy@example.com"},
 			},
 		},
 		{
 			"Q-encoded",
-			map[string]string{
-				"X-BEETHOVEN": "für Elise",
+			map[string][]string{
+				"X-BEETHOVEN": {"für Elise"},
 			},
-			map[string]string{
-				"X-BEETHOVEN": "=?UTF-8?q?f=C3=BCr_Elise?=",
+			map[string][]string{
+				"X-BEETHOVEN": {"=?UTF-8?q?f=C3=BCr_Elise?="},
+			},
+		},
+		{
+			"Multi",
+			map[string][]string{
+				"X-MailGun-Tag": {"marketing", "transactional"},
+			},
+			map[string][]string{
+				"X-MailGun-Tag": {"marketing", "transactional"},
 			},
 		},
 	}
@@ -287,12 +296,14 @@ func TestMailYakAddHeader(t *testing.T) {
 			t.Parallel()
 
 			m := &MailYak{
-				headers:   map[string]string{},
+				headers:   map[string][]string{},
 				trimRegex: regexp.MustCompile("\r?\n"),
 			}
 
-			for k, v := range tt.from {
-				m.AddHeader(k, v)
+			for k, values := range tt.from {
+				for _, v := range values {
+					m.AddHeader(k, v)
+				}
 			}
 
 			if !reflect.DeepEqual(m.headers, tt.want) {
@@ -330,7 +341,7 @@ func TestMailYakLocalName(t *testing.T) {
 			t.Parallel()
 
 			m := &MailYak{
-				headers:   map[string]string{},
+				headers:   map[string][]string{},
 				trimRegex: regexp.MustCompile("\r?\n"),
 			}
 

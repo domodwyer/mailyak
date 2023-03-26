@@ -76,11 +76,7 @@ func (m *MailYak) buildMimeWithBoundaries(w io.Writer, mb, ab string) error {
 		return err
 	}
 
-	if err := mixed.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return mixed.Close()
 }
 
 // writeHeaders writes the Mime-Version, Date, Reply-To, From, To and Subject headers,
@@ -118,8 +114,10 @@ func (m *MailYak) writeHeaders(w io.Writer) error {
 		fmt.Fprintf(w, "BCC: %s\r\n", commaSeparatedBCCAddrs)
 	}
 
-	for k, v := range m.headers {
-		fmt.Fprintf(w, "%s: %s\r\n", k, v)
+	for k, values := range m.headers {
+		for _, v := range values {
+			fmt.Fprintf(w, "%s: %s\r\n", k, v)
+		}
 	}
 
 	return nil
