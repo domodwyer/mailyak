@@ -76,11 +76,7 @@ func (m *MailYak) buildMimeWithBoundaries(w io.Writer, mb, ab string) error {
 		return err
 	}
 
-	if err := mixed.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return mixed.Close()
 }
 
 // writeHeaders writes the Mime-Version, Date, Reply-To, From, To and Subject headers,
