@@ -112,7 +112,7 @@ func (m *MailYak) writeAttachments(mixed partCreator, splitter writeWrapper) err
 			item.mimeType = http.DetectContentType(h[:hLen])
 		}
 
-		ctype := fmt.Sprintf("%s;\n\tfilename=%q", item.mimeType, item.filename)
+		ctype := fmt.Sprintf("%s;\n\tfilename=%q; name=%q", item.mimeType, item.filename, item.filename)
 
 		part, err := mixed.CreatePart(getMIMEHeader(item, ctype))
 		if err != nil {
@@ -145,7 +145,7 @@ func getMIMEHeader(a attachment, ctype string) textproto.MIMEHeader {
 
 	cid := fmt.Sprintf("<%s>", a.filename)
 	if a.inline {
-		disp = fmt.Sprintf("inline;\n\tfilename=%q", a.filename)
+		disp = fmt.Sprintf("inline;\n\tfilename=%q; name=%q", a.filename, a.filename)
 		header = textproto.MIMEHeader{
 			"Content-Type":              {ctype},
 			"Content-Disposition":       {disp},
@@ -153,7 +153,7 @@ func getMIMEHeader(a attachment, ctype string) textproto.MIMEHeader {
 			"Content-ID":                {cid},
 		}
 	} else {
-		disp = fmt.Sprintf("attachment;\n\tfilename=%q", a.filename)
+		disp = fmt.Sprintf("attachment;\n\tfilename=%q; name=%q", a.filename, a.filename)
 		header = textproto.MIMEHeader{
 			"Content-Type":              {ctype},
 			"Content-Disposition":       {disp},
