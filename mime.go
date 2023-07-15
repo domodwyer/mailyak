@@ -87,7 +87,7 @@ func (m *MailYak) writeHeaders(w io.Writer) error {
 		return err
 	}
 
-	if _, err := w.Write([]byte("Mime-Version: 1.0\r\n")); err != nil {
+	if _, err := w.Write([]byte("MIME-Version: 1.0\r\n")); err != nil {
 		return err
 	}
 
