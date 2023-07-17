@@ -79,7 +79,7 @@ func (m *MailYak) buildMimeWithBoundaries(w io.Writer, mb, ab string) error {
 	return mixed.Close()
 }
 
-// writeHeaders writes the Mime-Version, Date, Reply-To, From, To and Subject headers,
+// writeHeaders writes the MIME-Version, Date, Reply-To, From, To and Subject headers,
 // plus any custom headers set via AddHeader().
 func (m *MailYak) writeHeaders(w io.Writer) error {
 
