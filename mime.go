@@ -47,6 +47,22 @@ func (m *MailYak) buildMimeWithBoundaries(w io.Writer, mb, ab string) error {
 		return err
 	}
 
+	var (
+		hasBody        = m.html.Len() != 0 || m.plain.Len() != 0
+		hasAttachments = len(m.attachments) != 0
+	)
+
+	// if we don't have text/html body or attachments we can skip Content-Type header
+	// in that case next default will be assumed
+	//    Content-type: text/plain; charset=us-ascii
+	// See https://datatracker.ietf.org/doc/html/rfc2045#page-14
+	if !hasBody && !hasAttachments {
+		// The RFC said that body can be ommited: https://datatracker.ietf.org/doc/html/rfc822#section-3.1
+		// but for example mailhog can't correctly read message without any body.
+		// This CRLF just separate header section.
+		_, err := fmt.Fprint(w, "\r\n")
+		return err
+	}
 	// Start our multipart/mixed part
 	mixed := multipart.NewWriter(w)
 	if err := mixed.SetBoundary(mb); err != nil {
@@ -58,18 +74,17 @@ func (m *MailYak) buildMimeWithBoundaries(w io.Writer, mb, ab string) error {
 	tryWrite := func() error {
 		fmt.Fprintf(w, "Content-Type: multipart/mixed;\r\n\tboundary=\"%s\"; charset=UTF-8\r\n\r\n", mixed.Boundary())
 
-		ctype := fmt.Sprintf("multipart/alternative;\r\n\tboundary=\"%s\"", ab)
-
-		altPart, err := mixed.CreatePart(textproto.MIMEHeader{"Content-Type": {ctype}})
-		if err != nil {
-			return err
+		if hasBody {
+			if err := m.writeAlternativePart(mixed, ab); err != nil {
+				return err
+			}
 		}
-
-		if err := m.writeBody(altPart, ab); err != nil {
-			return err
+		if hasAttachments {
+			if err := m.writeAttachments(mixed, lineSplitterBuilder{}); err != nil {
+				return err
+			}
 		}
-
-		return m.writeAttachments(mixed, lineSplitterBuilder{})
+		return nil
 	}
 
 	if err := tryWrite(); err != nil {
@@ -82,7 +97,6 @@ func (m *MailYak) buildMimeWithBoundaries(w io.Writer, mb, ab string) error {
 // writeHeaders writes the MIME-Version, Date, Reply-To, From, To and Subject headers,
 // plus any custom headers set via AddHeader().
 func (m *MailYak) writeHeaders(w io.Writer) error {
-
 	if _, err := w.Write([]byte(m.fromHeader())); err != nil {
 		return err
 	}
@@ -133,13 +147,20 @@ func (m *MailYak) fromHeader() string {
 	return fmt.Sprintf("From: %s <%s>\r\n", m.fromName, m.fromAddr)
 }
 
-// writeBody writes the text/plain and text/html mime parts.
-func (m *MailYak) writeBody(w io.Writer, boundary string) error {
-	if m.plain.Len() == 0 && m.html.Len() == 0 {
-		// No body to write - just skip it
-		return nil
+func (m *MailYak) writeAlternativePart(mixed *multipart.Writer, boundary string) error {
+	ctype := fmt.Sprintf("multipart/alternative;\r\n\tboundary=\"%s\"", boundary)
+
+	altPart, err := mixed.CreatePart(textproto.MIMEHeader{"Content-Type": {ctype}})
+	if err != nil {
+		return err
 	}
 
+	return m.writeBody(altPart, boundary)
+}
+
+// writeBody writes the text/plain and text/html mime parts.
+// It's incorrect to call writeBody without html or plain content.
+func (m *MailYak) writeBody(w io.Writer, boundary string) error {
 	alt := multipart.NewWriter(w)
 
 	if err := alt.SetBoundary(boundary); err != nil {
