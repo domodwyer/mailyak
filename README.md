@@ -3,7 +3,7 @@ Status](https://travis-ci.org/domodwyer/mailyak.svg?branch=master)](https://trav
 [![GoDoc](https://godoc.org/github.com/domodwyer/mailyak?status.svg)](https://godoc.org/github.com/domodwyer/mailyak)
 
 <p align="center">
-<img src="https://s3-eu-west-1.amazonaws.com/iab-assets/mailyak-header.png" />
+<img src="https://assets.itsallbroken.com/github/mailyak-header.png" />
 </p>
 <p align="center">
 <em>An elegant MIME mail library with support for attachments</em>
